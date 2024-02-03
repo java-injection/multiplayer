@@ -13,5 +13,11 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <dependencies>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>5.0.2</version> <!-- Assicurati di utilizzare l'ultima versione disponibile -->
+        </dependency>
+    </dependencies>
 </project>
