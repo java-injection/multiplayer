@@ -10,6 +10,7 @@ public class GameManager {
     private ExecutorService executorService;
     private Player player1;
     private Player player2;
+    private String serverId;
     private static GameManager instance = null;
 
 
@@ -35,18 +36,31 @@ public class GameManager {
         this.player2 = player2;
     }
 
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
+    public void startServer(){
+        serverId = Utils.generateServerId();
+        System.out.println("Server Id: "+serverId);
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
     public Future<Void> waitingPlayers(){
         return executorService.submit(()->{
-
+            int elapsed = 0;
             while (true){
-                System.out.println("waiting players... ");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+                System.out.print("waiting for players " + (elapsed++) + " seconds\r");
                 if (canStart()){
                     System.out.println("both players ready");
                     break;
-                }
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
                 }
             }
             return null;
