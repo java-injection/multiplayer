@@ -1,8 +1,9 @@
 package it.ji.manager;
 
 import it.ji.Player;
+import it.ji.manager.events.RedisMessageListener;
 
-public class ServerGameManager implements RedisMessageListener{
+public class ServerGameManager implements RedisMessageListener {
     private static ServerGameManager instance = null;
     private String serverId;
     private Player player1;
