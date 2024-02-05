@@ -1,6 +1,8 @@
-package it.ji.manager;
+package it.ji.manager.deprecated;
 
 import it.ji.Player;
+import it.ji.manager.RedisManager;
+import it.ji.manager.Utils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,6 +16,7 @@ public class GameManager {
     private static GameManager instance = null;
 
 
+    @Deprecated(forRemoval = true)
     private GameManager() {
         executorService = Executors.newFixedThreadPool(2);
     }

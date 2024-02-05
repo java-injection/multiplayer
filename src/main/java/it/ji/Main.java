@@ -1,7 +1,5 @@
 package it.ji;
 
-import it.ji.manager.GameManager;
-import it.ji.manager.RedisManager;
 import it.ji.manager.ServerGameManager;
 
 import java.util.Scanner;
