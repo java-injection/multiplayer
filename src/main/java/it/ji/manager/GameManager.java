@@ -32,10 +32,6 @@ public class GameManager {
         this.player1 = player1;
     }
 
-    public void setPlayer2(Player player2) {
-        this.player2 = player2;
-    }
-
     public void setServerId(String serverId) {
         this.serverId = serverId;
     }
@@ -43,6 +39,7 @@ public class GameManager {
     public void startServer(){
         serverId = Utils.generateServerId();
         System.out.println("Server Id: "+serverId);
+        RedisManager.getInstance().put(serverId, "waiting");
     }
 
     public String getServerId() {
@@ -65,5 +62,19 @@ public class GameManager {
             }
             return null;
         });
+    }
+
+    public void joinServer(String serverId, Player player2) {
+        if(RedisManager.getInstance().get(serverId) == null){
+            System.out.println("Server not found");
+            return;
+        }
+        if(RedisManager.getInstance().get(serverId).equals("waiting")){
+            RedisManager.getInstance().put(serverId, "playing");
+            this.player2 = player2;
+            System.out.println("Player " + player2.name() + " joined the server");
+        }else{
+            System.out.println("Server is already playing");
+        }
     }
 }

@@ -2,43 +2,29 @@ package it.ji;
 
 import it.ji.manager.GameManager;
 import it.ji.manager.RedisManager;
+import it.ji.manager.ServerGameManager;
 
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
-
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Welcome to multiplayer");
-        System.out.println("1) New Server");
-        System.out.println("2) Join Server");
-        System.out.println("3) Exit");
-        System.out.print("Choose an option: ");
-        int option = scanner.nextInt();
-        switch (option) {
-            case 1:
-                GameManager.getInstance().startServer();
-                System.out.println("++++++++++++++++++++++++++++++");
-                System.out.println("Creating a new Server with ID: " + GameManager.getInstance().getServerId());
-                System.out.print("> Insert your player name: ");
-                String playerName = scanner.next();
-                GameManager.getInstance().setPlayer1(new Player(playerName));
-                System.out.println("Player " + playerName + " is ready!");
-                GameManager.getInstance().waitingPlayers();
-                break;
-            case 2:
-                System.out.println("not ready yet!");
-                break;
-            case 3:
-                System.exit(0);
-                break;
-            default:
-                System.out.println("Invalid option");
-                break;
+        //switch between player and server mode using the first argument that can be --server or --player
+        if (args.length == 0) {
+            System.out.println("Usage: java -jar <jarfile> --server or java -jar <jarfile> --player");
+            return;
         }
-        RedisManager.getInstance().put("test", "timestamp: " + System.currentTimeMillis());
-        System.out.println("end of the program!");
+        if (args[0].equals("--server")) {
+            System.out.println("WARNING: this is a server, it will start listening ..");
+            ServerGameManager.getInstance().startServer();
+
+        } else if (args[0].equals("--player")) {
+            System.out.println("Enter the server id");
+            Scanner scanner = new Scanner(System.in);
+            String serverId = scanner.nextLine();
+
+        }
+
+
     }
 }
