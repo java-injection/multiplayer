@@ -38,8 +38,8 @@ public class RedisManager {
         jedis.hset(key, field, value);
     }
 
-    public void hget(String key, String field){
-        jedis.hget(key, field);
+    public String hget(String key, String field){
+        return jedis.hget(key, field);
     }
 
     public void publish(String channel, String message){
@@ -69,15 +69,17 @@ public class RedisManager {
     public void kill(){
         System.out.println("Killing the executor service");
         executorService.shutdown();
-
-
         System.out.println("Executor service killed");
     }
 
     public static void main(String[] args) {
-        RedisManager.getInstance().put("h20","acqua");
+        RedisManager.getInstance().put("PROVA-GET","acqua");
         //test hset
-        RedisManager.getInstance().hset("prova-hset", "temperature", "20");
+        RedisManager.getInstance().hset("prova-hset2", "temperature", "20");
+        RedisManager.getInstance().hset("prova-hset2", "temperature", "30");
+        RedisManager.getInstance().hset("prova-hset2", "time", "11:21");
+        final String temperature = RedisManager.getInstance().hget("prova-hset2", "temperature");
+        System.out.println("Temperature: " + temperature);
     }
 
 

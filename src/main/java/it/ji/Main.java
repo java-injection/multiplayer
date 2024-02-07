@@ -25,7 +25,8 @@ public class Main {
             System.out.println("Waiting for the server to start the game ..");
 
         }
-
-
+        if(args.length > 1) {
+            System.out.println("Second argument: " + args[1]);
+        }
     }
 }
