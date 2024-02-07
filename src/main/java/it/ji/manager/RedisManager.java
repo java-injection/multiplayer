@@ -58,15 +58,26 @@ public class RedisManager {
                     }
                 }, channel);
                 System.out.println("Subscribed to channel: " + channel);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
 
+    //expose a method to kill the executor service
+    public void kill(){
+        System.out.println("Killing the executor service");
+        executorService.shutdown();
+
+
+        System.out.println("Executor service killed");
+    }
 
     public static void main(String[] args) {
         RedisManager.getInstance().put("h20","acqua");
+        //test hset
+        RedisManager.getInstance().hset("prova-hset", "temperature", "20");
     }
 
 

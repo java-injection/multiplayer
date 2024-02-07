@@ -1,5 +1,6 @@
 package it.ji;
 
+import it.ji.manager.RedisManager;
 import it.ji.manager.ServerGameManager;
 
 import java.util.Scanner;
@@ -20,6 +21,8 @@ public class Main {
             System.out.println("Enter the server id");
             Scanner scanner = new Scanner(System.in);
             String serverId = scanner.nextLine();
+            RedisManager.getInstance().publish("hello", "I'm a player");
+            System.out.println("Waiting for the server to start the game ..");
 
         }
 

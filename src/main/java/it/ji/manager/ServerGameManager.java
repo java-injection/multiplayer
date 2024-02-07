@@ -35,10 +35,17 @@ public class ServerGameManager implements RedisMessageListener {
             serverId = Utils.generateServerId();
             System.out.println("[GameServer] Server Id: " + serverId);
             RedisManager.getInstance().put(serverId, "waiting");
+            System.out.println("ERROR SUBSCRIBE");
+            RedisManager.getInstance().subscribe("hello",
+                    message -> {
+                        System.out.println("Received message: " + message.message() + " from channel: " + message.channel());
+                    }
+            );
+
             //create a waiting thread that listen for players to login through the redis publish/subscribe system
             RedisManager.getInstance().subscribe("login", this);
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
-            new Thread(() -> {
+            Thread t = new Thread(() -> {
                 int elapsed = 0;
                 System.out.println("waiting for players");
                 while (true) {
@@ -48,12 +55,17 @@ public class ServerGameManager implements RedisMessageListener {
                         e.printStackTrace();
                     }
                     System.out.print("waiting for players " + (elapsed++) + " seconds\r");
-                    if (canStart()) {
+                    if (canStart() || elapsed > 60) {
                         System.out.println("both players ready");
                         break;
                     }
                 }
-            }).start();
+            });
+            t.start();
+            t.join();
+            System.out.println(" ************************ Server started ************************ ");
+            RedisManager.getInstance().kill();
+
         }catch (Exception e){
             e.printStackTrace();
         }
