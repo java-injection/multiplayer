@@ -53,7 +53,7 @@ public class RedisManager {
                 jedis.subscribe(new JedisPubSub() {
                     @Override
                     public void onMessage(String channel, String message) {
-                        System.out.println("Received message: " + message + " from channel: " + channel);
+
                         listeners.forEach(listener -> listener.onMessage(new RedisMessage(channel, message)));
                     }
                 }, channel);

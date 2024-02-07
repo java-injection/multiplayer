@@ -1,5 +1,7 @@
 package it.ji.manager;
 
+import it.ji.manager.logic.Status;
+
 public class ClientGameManager {
     private static ClientGameManager instance = null;
     private String serverId;
@@ -19,5 +21,22 @@ public class ClientGameManager {
 
     public String getServerId() {
         return serverId;
+    }
+
+    public void startClient(String serverId, String username) {
+        if (serverId == null || username == null || serverId.isBlank() || username.isBlank() || serverId.isEmpty() || username.isEmpty() ) {
+            throw new IllegalArgumentException("serverId and username cannot be null");
+        }
+        if (isServerWaiting(serverId)){
+            RedisManager.getInstance().publish("login", serverId + ":" + username);
+            System.out.println("Waiting for the server to start the game ..");
+        }
+        else {
+            throw new IllegalArgumentException("Server is not waiting for players");
+        }
+
+    }
+    public boolean isServerWaiting(String serverId) {
+        return RedisManager.getInstance().hget(ServerGameManager.GAME_NAME, serverId).equals(String.valueOf(Status.WAITING));
     }
 }

@@ -2,9 +2,11 @@ package it.ji.manager;
 
 import it.ji.Player;
 import it.ji.manager.events.RedisMessageListener;
+import it.ji.manager.logic.Status;
 
 public class ServerGameManager implements RedisMessageListener {
     private static ServerGameManager instance = null;
+    public static final String GAME_NAME = "MATRICE";
     private String serverId;
     private Player player1;
     private Player player2;
@@ -34,9 +36,9 @@ public class ServerGameManager implements RedisMessageListener {
         try {
             serverId = Utils.generateServerId();
             System.out.println("[GameServer] Server Id: " + serverId);
-            RedisManager.getInstance().put(serverId, "waiting");
-            System.out.println("ERROR SUBSCRIBE");
-            RedisManager.getInstance().subscribe("hello",
+            RedisManager.getInstance().hset(GAME_NAME,serverId, String.valueOf(Status.WAITING));
+            System.out.println("[DEBUG] Subscribing...");
+            RedisManager.getInstance().subscribe("login",
                     message -> {
                         System.out.println("Received message: " + message.message() + " from channel: " + message.channel());
                     }
@@ -45,24 +47,21 @@ public class ServerGameManager implements RedisMessageListener {
             //create a waiting thread that listen for players to login through the redis publish/subscribe system
             RedisManager.getInstance().subscribe("login", this);
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
-            Thread t = new Thread(() -> {
-                int elapsed = 0;
-                System.out.println("waiting for players");
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.print("waiting for players " + (elapsed++) + " seconds\r");
-                    if (canStart() || elapsed > 60) {
-                        System.out.println("both players ready");
-                        break;
-                    }
+
+            int elapsed = 0;
+            System.out.println("waiting for players");
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            });
-            t.start();
-            t.join();
+                System.out.print("waiting for players " + (elapsed++) + " seconds\r");
+                if (canStart() || elapsed > 60) {
+                    System.out.println("both players ready");
+                    break;
+                }
+            }
             System.out.println(" ************************ Server started ************************ ");
             RedisManager.getInstance().kill();
 

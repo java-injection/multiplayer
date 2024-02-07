@@ -1,5 +1,6 @@
 package it.ji;
 
+import it.ji.manager.ClientGameManager;
 import it.ji.manager.RedisManager;
 import it.ji.manager.ServerGameManager;
 
@@ -21,7 +22,13 @@ public class Main {
             System.out.println("Enter the server id");
             Scanner scanner = new Scanner(System.in);
             String serverId = scanner.nextLine();
-            RedisManager.getInstance().publish("hello", "I'm a player");
+            System.out.println("inserisci il tuo username");
+            String username = scanner.nextLine();
+            try {
+            ClientGameManager.getInstance().startClient(serverId, username);
+            }catch (IllegalArgumentException e){
+                System.out.println(e.getMessage());
+            }
             System.out.println("Waiting for the server to start the game ..");
 
         }
