@@ -3,23 +3,24 @@ package it.ji.manager;
 import it.ji.manager.events.RedisMessageListener;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.search.querybuilder.OptionalNode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class RedisManager {
     private static RedisManager instance = null;
-    private Jedis jedis = null;
+    private Jedis jedisBroker = null;
+    private Jedis jedisRW = null;
+
     private List<RedisMessageListener> listeners = new ArrayList<>();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private RedisManager() {
-        jedis = new Jedis("http://217.160.155.226:19003");
+        jedisBroker = new Jedis("http://217.160.155.226:19003");
+        jedisRW = new Jedis("http://217.160.155.226:19003");
     }
 
     public static RedisManager getInstance() {
@@ -29,30 +30,30 @@ public class RedisManager {
         return instance;
     }
     public void put(String key, String value){
-        jedis.set(key, value);
+        jedisRW.set(key, value);
     }
 
     public String get(String key){
-        return jedis.get(key);
+        return jedisRW.get(key);
     }
 
     public void hset(String key, String field, String value){
-        jedis.hset(key, field, value);
+        jedisRW.hset(key, field, value);
     }
 
     public Optional<String> hget(String key, String field){
-        return Optional.ofNullable(jedis.hget(key, field));
+        return Optional.ofNullable(jedisRW.hget(key, field));
     }
 
     public void publish(String channel, String message){
-        jedis.publish(channel, message);
+        jedisBroker.publish(channel, message);
     }
 
     public void subscribe(String channel, RedisMessageListener listener){
         listeners.add(listener);
         executorService.submit(() -> {
             try {
-                jedis.subscribe(new JedisPubSub() {
+                jedisBroker.subscribe(new JedisPubSub() {
                     @Override
                     public void onMessage(String channel, String message) {
 
@@ -73,8 +74,15 @@ public class RedisManager {
         executorService.shutdown();
         System.out.println("Executor service killed");
     }
+    public void hdelete(String key, String field){
+        System.out.println("Deleting field: " + field + " from key: " + key);
+        jedisRW.hdel(key, field);
+    }
 
-
-
-
+    public void shutdown() {
+        jedisBroker.shutdown();
+        jedisRW.shutdown();
+        jedisBroker.close();
+        jedisRW.close();
+    }
 }

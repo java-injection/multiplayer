@@ -57,8 +57,13 @@ public class ServerGameManager implements RedisMessageListener {
                     e.printStackTrace();
                 }
                 System.out.print("waiting for players " + (elapsed++) + " seconds\r");
-                if (canStart() || elapsed > 60) {
+                if (canStart()  ) {
                     System.out.println("both players ready");
+                    break;
+                }
+                if (elapsed > 5) {
+                    System.out.println("Timeout");
+                    shutDownServer();
                     break;
                 }
             }
@@ -70,7 +75,10 @@ public class ServerGameManager implements RedisMessageListener {
         }
 
     }
-
+    public void shutDownServer(){
+        RedisManager.getInstance().hdelete(GAME_NAME, serverId);
+        RedisManager.getInstance().shutdown();
+    }
 
     @Override
     public void onMessage(RedisMessage message) {
