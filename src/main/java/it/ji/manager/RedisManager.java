@@ -3,9 +3,11 @@ package it.ji.manager;
 import it.ji.manager.events.RedisMessageListener;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.search.querybuilder.OptionalNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,8 +40,8 @@ public class RedisManager {
         jedis.hset(key, field, value);
     }
 
-    public String hget(String key, String field){
-        return jedis.hget(key, field);
+    public Optional<String> hget(String key, String field){
+        return Optional.ofNullable(jedis.hget(key, field));
     }
 
     public void publish(String channel, String message){
@@ -72,15 +74,7 @@ public class RedisManager {
         System.out.println("Executor service killed");
     }
 
-    public static void main(String[] args) {
-        RedisManager.getInstance().put("PROVA-GET","acqua");
-        //test hset
-        RedisManager.getInstance().hset("prova-hset2", "temperature", "20");
-        RedisManager.getInstance().hset("prova-hset2", "temperature", "30");
-        RedisManager.getInstance().hset("prova-hset2", "time", "11:21");
-        final String temperature = RedisManager.getInstance().hget("prova-hset2", "temperature");
-        System.out.println("Temperature: " + temperature);
-    }
+
 
 
 }

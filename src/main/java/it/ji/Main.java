@@ -3,6 +3,7 @@ package it.ji;
 import it.ji.manager.ClientGameManager;
 import it.ji.manager.RedisManager;
 import it.ji.manager.ServerGameManager;
+import it.ji.manager.ServerNotFoundException;
 
 import java.util.Scanner;
 
@@ -19,18 +20,21 @@ public class Main {
             ServerGameManager.getInstance().startServer();
 
         } else if (args[0].equals("--player")) {
-            System.out.println("Enter the server id");
-            Scanner scanner = new Scanner(System.in);
-            String serverId = scanner.nextLine();
-            System.out.println("inserisci il tuo username");
-            String username = scanner.nextLine();
-            try {
-            ClientGameManager.getInstance().startClient(serverId, username);
-            }catch (IllegalArgumentException e){
-                System.out.println(e.getMessage());
+            while (true) {
+                System.out.println("Enter the server id");
+                Scanner scanner = new Scanner(System.in);
+                String serverId = scanner.nextLine();
+                System.out.println("inserisci il tuo username");
+                String username = scanner.nextLine();
+                try {
+                    ClientGameManager.getInstance().startClient(serverId, username);
+                } catch (IllegalArgumentException | ServerNotFoundException e) {
+                    System.out.println(e.getMessage());
+                    continue;
+                }
+                System.out.println("Waiting for the server to start the game ..");
+                break;
             }
-            System.out.println("Waiting for the server to start the game ..");
-
         }
         if(args.length > 1) {
             System.out.println("Second argument: " + args[1]);

@@ -23,20 +23,21 @@ public class ClientGameManager {
         return serverId;
     }
 
-    public void startClient(String serverId, String username) {
+    public void startClient(String serverId, String username) throws ServerNotFoundException {
         if (serverId == null || username == null || serverId.isBlank() || username.isBlank() || serverId.isEmpty() || username.isEmpty() ) {
             throw new IllegalArgumentException("serverId and username cannot be null");
         }
-        if (isServerWaiting(serverId)){
+        if (isServerWaiting(serverId)) {
             RedisManager.getInstance().publish("login", serverId + ":" + username);
             System.out.println("Waiting for the server to start the game ..");
         }
         else {
             throw new IllegalArgumentException("Server is not waiting for players");
         }
-
     }
-    public boolean isServerWaiting(String serverId) {
-        return RedisManager.getInstance().hget(ServerGameManager.GAME_NAME, serverId).equals(String.valueOf(Status.WAITING));
+    public boolean isServerWaiting(String serverId) throws ServerNotFoundException {
+        return RedisManager.getInstance().hget(ServerGameManager.GAME_NAME, serverId)
+                .map(status -> status.equals(String.valueOf(Status.WAITING)))
+                .orElseThrow(() -> new ServerNotFoundException("Server not found"));
     }
 }
