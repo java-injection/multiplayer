@@ -34,6 +34,7 @@ public class ServerGameManager implements RedisMessageListener {
 
     public void startServer(){
         try {
+            System.out.println("[GameServer] Starting server...");
             serverId = Utils.generateServerId();
             System.out.println("[GameServer] Server Id: " + serverId);
             RedisManager.getInstance().hset(GAME_NAME,serverId, String.valueOf(Status.WAITING));
