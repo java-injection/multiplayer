@@ -1,4 +1,4 @@
-package it.ji.manager;
+package it.ji.game.utils;
 
 public class Utils {
 

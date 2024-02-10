@@ -1,15 +1,17 @@
-package it.ji.manager;
+package it.ji.game.communications;
 
-import it.ji.Player;
-import it.ji.manager.events.RedisMessageListener;
-import it.ji.manager.logic.Status;
+import it.ji.game.logic.GameManager;
+import it.ji.game.events.RedisMessageListener;
+import it.ji.game.logic.Status;
+import it.ji.game.redis.RedisManager;
+import it.ji.game.redis.RedisMessage;
+import it.ji.game.utils.Utils;
 
 public class ServerGameManager implements RedisMessageListener {
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
     private String serverId;
-    private Player player1;
-    private Player player2;
+
     private ServerGameManager() {
     }
 
@@ -29,7 +31,7 @@ public class ServerGameManager implements RedisMessageListener {
     }
 
     public boolean canStart(){
-        return player1 != null && player2 != null;
+        return GameManager.getInstance().canStart();
     }
 
     public void startServer(){
@@ -62,7 +64,7 @@ public class ServerGameManager implements RedisMessageListener {
                     System.out.println("both players ready");
                     break;
                 }
-                if (elapsed > 5) {
+                if (elapsed > 60) {
                     System.out.println("Timeout");
                     shutDownServer();
                     break;
@@ -74,8 +76,9 @@ public class ServerGameManager implements RedisMessageListener {
         }catch (Exception e){
             e.printStackTrace();
         }
-
     }
+
+
     public void shutDownServer(){
         RedisManager.getInstance().hdelete(GAME_NAME, serverId);
         RedisManager.getInstance().shutdown();
@@ -83,12 +86,16 @@ public class ServerGameManager implements RedisMessageListener {
 
     @Override
     public void onMessage(RedisMessage message) {
+        Player player1 = GameManager.getInstance().getPlayer1();
+        Player player2 = GameManager.getInstance().getPlayer2();
         if (message.channel().equals("login")){
             if (player1 == null){
                 player1 = new Player(message.message());
+                GameManager.getInstance().setPlayer1(player1);
                 System.out.println("Player 1 logged in: "+player1.name());
             }else if (player2 == null){
                 player2 = new Player(message.message());
+                GameManager.getInstance().setPlayer2(player2);
                 System.out.println("Player 2 logged in: "+player2.name());
             }else{
                 System.out.println("Server full");

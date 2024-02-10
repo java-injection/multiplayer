@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.ji</groupId>
-    <artifactId>multiplayer</artifactId>
+    <artifactId>game</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -38,7 +38,7 @@
             <configuration>
                 <archive>
                     <manifest>
-                        <mainClass>it.ji.Main</mainClass> <!-- Sostituisci con il tuo main class -->
+                        <mainClass>it.ji.game.Main</mainClass> <!-- Sostituisci con il tuo main class -->
                     </manifest>
                 </archive>
                 <descriptorRefs>

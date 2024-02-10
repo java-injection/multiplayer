@@ -1,6 +1,8 @@
-package it.ji.manager;
+package it.ji.game.communications;
 
-import it.ji.manager.logic.Status;
+import it.ji.game.logic.Status;
+import it.ji.game.redis.RedisManager;
+import it.ji.game.exceptions.ServerNotFoundException;
 
 public class ClientGameManager {
     private static ClientGameManager instance = null;

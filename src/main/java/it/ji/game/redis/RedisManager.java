@@ -1,6 +1,6 @@
-package it.ji.manager;
+package it.ji.game.redis;
 
-import it.ji.manager.events.RedisMessageListener;
+import it.ji.game.events.RedisMessageListener;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 

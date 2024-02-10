@@ -1,9 +1,8 @@
-package it.ji;
+package it.ji.game;
 
-import it.ji.manager.ClientGameManager;
-import it.ji.manager.RedisManager;
-import it.ji.manager.ServerGameManager;
-import it.ji.manager.ServerNotFoundException;
+import it.ji.game.communications.ClientGameManager;
+import it.ji.game.communications.ServerGameManager;
+import it.ji.game.exceptions.ServerNotFoundException;
 
 import java.util.Scanner;
 
