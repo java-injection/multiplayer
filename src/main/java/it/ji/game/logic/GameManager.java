@@ -22,7 +22,9 @@ public class GameManager {
     public boolean canStart(){
         return player1 != null && player2 != null;
     }
+    public void init(){
 
+    }
     public void setPlayer1(Player player1) {
         this.player1 = player1;
     }
