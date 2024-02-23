@@ -19,6 +19,11 @@
             <artifactId>jedis</artifactId>
             <version>5.0.2</version> <!-- Assicurati di utilizzare l'ultima versione disponibile -->
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version> <!-- Assicurati di utilizzare l'ultima versione disponibile -->
+        </dependency>
     </dependencies>
 
     <build>
