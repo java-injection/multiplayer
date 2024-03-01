@@ -2,6 +2,7 @@ package it.ji.game.logging.defaults;
 
 import it.ji.game.logging.Level;
 import it.ji.game.logging.LogMethod;
+import it.ji.game.logging.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,6 +13,7 @@ public final class DatabaseLogger implements LogMethod {
     private static final String DB_URL = "jdbc:mysql://152.228.218.211:230/logger?useSSL=false&serverTimezone=UTC";
     private static final String USER = "root";
     private static final String PASS = System.getenv("DB_PASSWORD");
+
 
     // Oggetto Connection per la connessione al database
     private Connection conn;
@@ -79,7 +81,7 @@ public final class DatabaseLogger implements LogMethod {
             java.sql.Statement stmt = conn.createStatement();
 
             // Query per l'inserimento del messaggio nel database
-            String sql = "INSERT INTO logger (message, livello) VALUES ('" + message + "', '" + level + "')";
+            String sql = "INSERT INTO logger (message, livello, user_, timestamp_) VALUES ('" + message + "', '" + level + "', '" + Logger.getUser() + "', NOW())";
             stmt.executeUpdate(sql);
             System.out.println("Messaggio inserito nel database.");
         } catch (SQLException e) {

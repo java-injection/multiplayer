@@ -12,10 +12,18 @@ public class Logger {
     private static Logger _instance = null;
     private static Level _level;
     private static String _message;
+    private static String user = "UNKNOWN";
     private static void init(){
         if(_instance == null){
             _instance = new Logger();
         }
+    }
+
+    public static void setUser(String user) {
+        Logger.user = user;
+    }
+    public static String getUser() {
+        return user;
     }
 
     private Logger(){
