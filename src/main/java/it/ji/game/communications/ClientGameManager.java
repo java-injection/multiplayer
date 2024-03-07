@@ -7,6 +7,7 @@ import it.ji.game.exceptions.ServerNotFoundException;
 public class ClientGameManager {
     private static ClientGameManager instance = null;
     private String serverId;
+    private Integer[][] localBoard;
     private ClientGameManager() {
     }
 

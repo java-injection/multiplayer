@@ -1,16 +1,22 @@
 package it.ji.game.communications;
 
+import it.ji.game.logic.Coordinates;
 import it.ji.game.logic.GameManager;
 import it.ji.game.events.RedisMessageListener;
 import it.ji.game.logic.Status;
 import it.ji.game.redis.RedisManager;
 import it.ji.game.redis.RedisMessage;
+import it.ji.game.settings.Settings;
 import it.ji.game.utils.Utils;
+
+import java.util.Map;
 
 public class ServerGameManager implements RedisMessageListener {
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
     private String serverId;
+    private Integer[][] localBoard;
+    private Map<String, Coordinates> playersToCoordinates;
 
     private ServerGameManager() {
     }
@@ -84,6 +90,8 @@ public class ServerGameManager implements RedisMessageListener {
         RedisManager.getInstance().shutdown();
     }
 
+
+
     @Override
     public void onMessage(RedisMessage message) {
         Player player1 = GameManager.getInstance().getPlayer1();
@@ -102,4 +110,23 @@ public class ServerGameManager implements RedisMessageListener {
             }
         }
     }
+    private void initBoard(){
+        localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
+
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
+                localBoard[i][j] = 0;
+            }
+        }
+    }
+    public void printBoard(){
+
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
+                System.out.print(localBoard[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
 }
