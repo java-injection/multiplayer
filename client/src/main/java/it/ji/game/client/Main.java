@@ -2,6 +2,7 @@ package it.ji.game.client;
 
 import it.ji.game.client.exceptions.ServerNotFoundException;
 import it.ji.game.client.manager.ClientGameManager;
+import it.ji.game.utils.settings.Settings;
 
 import java.util.Scanner;
 

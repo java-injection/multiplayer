@@ -28,7 +28,7 @@ public class Settings {
             for (String key : properties.stringPropertyNames()) {
                 settings.put(SettingsKey.fromString(key), properties.getProperty(key));
             }
-
+            printSetting();
         } catch (Exception e) {
             e.printStackTrace();
         }
