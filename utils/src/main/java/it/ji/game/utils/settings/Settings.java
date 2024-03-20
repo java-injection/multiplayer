@@ -46,6 +46,6 @@ public class Settings {
         return 10;
     }
     public String getGameName(){
-        return "game";
+        return "MATRICE";
     }
 }
