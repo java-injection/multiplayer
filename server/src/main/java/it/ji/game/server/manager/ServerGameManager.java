@@ -72,7 +72,7 @@ public class ServerGameManager implements RedisMessageListener {
                     System.out.println("both players ready");
                     break;
                 }
-                if (elapsed > 60) {
+                if (elapsed > 600) {
                     System.out.println("Timeout");
                     shutDownServer();
                     break;

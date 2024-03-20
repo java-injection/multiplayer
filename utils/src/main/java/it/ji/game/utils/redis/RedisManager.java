@@ -53,7 +53,7 @@ public class RedisManager {
         listeners.add(listener);
         executorService.submit(() -> {
             try {
-                jedisBroker.subscribe(new JedisPubSub() {
+                jedisRW.subscribe(new JedisPubSub() {
                     @Override
                     public void onMessage(String channel, String message) {
 
