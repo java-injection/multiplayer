@@ -1,4 +1,4 @@
 package it.ji.game.utils.logic;
 
-public record Player (String name) {
+public record Player (String username) {
 }

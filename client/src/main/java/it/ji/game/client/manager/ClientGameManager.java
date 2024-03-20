@@ -2,17 +2,36 @@ package it.ji.game.client.manager;
 
 
 import it.ji.game.client.exceptions.ServerNotFoundException;
+import it.ji.game.client.gui.ClientListener;
+import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.redis.RedisManager;
+import it.ji.game.utils.redis.RedisMessage;
+import it.ji.game.utils.redis.RedisMessageListener;
 import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
 
-public class ClientGameManager {
+import java.util.LinkedList;
+
+public class ClientGameManager implements RedisMessageListener {
     private static ClientGameManager instance = null;
     private String serverId;
     private Integer[][] localBoard;
-    private ClientGameManager() {
-    }
 
+    private Player selfPlayer;
+    private Player enemyPlayer;
+    private LinkedList<ClientListener> clientListeners = new LinkedList<>();
+    private ClientGameManager() {
+        RedisManager.getInstance().subscribe("login", this);
+    }
+    public void setSelfPlayer(Player selfPlayer) {
+        this.selfPlayer = selfPlayer;
+    }
+    public void setEnemyPlayer(Player enemyPlayer) {
+        this.enemyPlayer = enemyPlayer;
+    }
+    public void addClientListner(ClientListener listner){
+        clientListeners.add(listner);
+    }
     public static ClientGameManager getInstance() {
         if (instance == null) {
             instance = new ClientGameManager();
@@ -44,5 +63,21 @@ public class ClientGameManager {
         return RedisManager.getInstance().hget(Settings.getInstance().getGameName(), serverId)
                 .map(status -> status.equals(String.valueOf(Status.WAITING)))
                 .orElseThrow(() -> new ServerNotFoundException("Server not found"));
+    }
+
+    public String getSelfPlayer() {
+        return selfPlayer.username();
+    }
+
+    @Override
+    public void onMessage(RedisMessage message) {
+        if (message.channel().equals("login/status/accepted")) {
+            String[] split = message.message().split(":");
+            if (split[0].equals(serverId)) {
+                serverId = split[0];
+                String username = split[1];
+                clientListeners.forEach(listener -> listener.userAccepted(serverId,username));
+            }
+        }
     }
 }

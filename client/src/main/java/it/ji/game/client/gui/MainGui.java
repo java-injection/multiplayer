@@ -4,17 +4,21 @@
  */
 package it.ji.game.client.gui;
 
+import it.ji.game.client.manager.ClientGameManager;
+
 /**
  *
  * @author sommovir
  */
-public class MainGui extends javax.swing.JFrame {
+public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     /**
      * Creates new form MainGui
      */
-    public MainGui() {
+    public MainGui(String username) {
         initComponents();
+        ClientGameManager.getInstance().addClientListner(this);
+        this.setTitle(username);
         this.setBounds(0, 0, 800, 800);
         for(int i=0; i<20; i++){
             for(int j=0; j<20; j++){
@@ -123,7 +127,7 @@ public class MainGui extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainGui().setVisible(true);
+                new MainGui("username").setVisible(true);
             }
         });
     }
@@ -133,5 +137,25 @@ public class MainGui extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel_container;
     private javax.swing.JToolBar jToolBar1;
+
+    @Override
+    public void userAccepted(String serverId, String username) {
+
+    }
+
+    @Override
+    public void userRejected(String serverId, String username) {
+
+    }
+
+    @Override
+    public void gameStarted(String serverId) {
+
+    }
+
+    @Override
+    public void gameEnded(String serverId) {
+
+    }
     // End of variables declaration//GEN-END:variables
 }

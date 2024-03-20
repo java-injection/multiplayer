@@ -100,12 +100,15 @@ public class ServerGameManager implements RedisMessageListener {
         if (message.channel().equals("login")){
             if (player1 == null){
                 player1 = new Player(message.message());
-                System.out.println("Player 1 logged in: "+player1.name());
+                System.out.println("Player 1 logged in: "+player1.username());
+                RedisManager.getInstance().publish("login/status/accepted", serverId+" : "+player1.username());
             }else if (player2 == null){
                 player2 = new Player(message.message());
-                System.out.println("Player 2 logged in: "+player2.name());
+                System.out.println("Player 2 logged in: "+player2.username());
+                RedisManager.getInstance().publish("login/status/accepted", serverId+" : "+player1.username());
             }else{
                 System.out.println("Server full");
+                RedisManager.getInstance().publish("login/status/rejected", serverId+" : "+message.message());
             }
         }
     }

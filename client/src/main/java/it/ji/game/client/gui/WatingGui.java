@@ -4,17 +4,21 @@
  */
 package it.ji.game.client.gui;
 
+import it.ji.game.client.Main;
+import it.ji.game.client.manager.ClientGameManager;
+
 /**
  *
  * @author sommovir
  */
-public class WatingGui extends javax.swing.JFrame {
+public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     /**
      * Creates new form WatingGui
      */
     public WatingGui() {
         initComponents();
+        ClientGameManager.getInstance().addClientListner(this);
     }
     
     public void setMessage(String text){
@@ -102,5 +106,27 @@ public class WatingGui extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel_message;
+
+    @Override
+    public void userAccepted(String serverId, String username) {
+        jLabel_message.setText(serverId+" : "+username+" accepted");
+    }
+
+    @Override
+    public void userRejected(String serverId, String username) {
+        jLabel_message.setText(serverId+" : "+username+" rejected");
+    }
+
+    @Override
+    public void gameStarted(String serverId) {
+        this.setVisible(false);
+        Main.startGui(ClientGameManager.getInstance().getSelfPlayer());
+        this.dispose();
+    }
+
+    @Override
+    public void gameEnded(String serverId) {
+
+    }
     // End of variables declaration//GEN-END:variables
 }
