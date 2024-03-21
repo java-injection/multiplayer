@@ -20,8 +20,9 @@ public class ClientGameManager implements RedisMessageListener {
     private Player selfPlayer;
     private Player enemyPlayer;
     private LinkedList<ClientListener> clientListeners = new LinkedList<>();
+
     private ClientGameManager() {
-        RedisManager.getInstance().subscribe("login", this);
+        RedisManager.getInstance().subscribe("login.status.accepted", this);
     }
     public void setSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
@@ -29,6 +30,7 @@ public class ClientGameManager implements RedisMessageListener {
     public void setEnemyPlayer(Player enemyPlayer) {
         this.enemyPlayer = enemyPlayer;
     }
+
     public void addClientListner(ClientListener listner){
         clientListeners.add(listner);
     }
@@ -71,11 +73,15 @@ public class ClientGameManager implements RedisMessageListener {
 
     @Override
     public void onMessage(RedisMessage message) {
-        if (message.channel().equals("login/status/accepted")) {
+        System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
+        if (message.channel().equals("login.status.accepted")) {
+            System.out.println("[DEBUG] handling messag in channel: <login.status.accepted>");
             String[] split = message.message().split(":");
+            System.out.println("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]");
             if (split[0].equals(serverId)) {
                 serverId = split[0];
                 String username = split[1];
+                System.out.println("[DEBUG] Server accepted user: " + username + " serverId: " + serverId);
                 clientListeners.forEach(listener -> listener.userAccepted(serverId,username));
             }
         }

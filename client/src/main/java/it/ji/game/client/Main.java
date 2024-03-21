@@ -17,6 +17,7 @@ public class Main {
         System.out.println("Starting client...");
         System.out.println("insert server id: ");
         String serverId = scanner.nextLine();
+        ClientGameManager.getInstance().setServerId(serverId);
         System.out.println("insert username: ");
         String username = scanner.nextLine();
         try {

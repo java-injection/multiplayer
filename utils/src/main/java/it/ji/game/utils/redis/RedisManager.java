@@ -20,7 +20,7 @@ public class RedisManager {
 
     private RedisManager() {
         jedisBroker = new Jedis("http://217.160.155.226:19003");
-        jedisRW = new Jedis("http://217.160.155.226:19003");
+        jedisRW     = new Jedis("http://217.160.155.226:19003");
     }
 
     public static RedisManager getInstance() {
@@ -46,6 +46,7 @@ public class RedisManager {
     }
 
     public void publish(String channel, String message){
+        System.out.println("Publishing message: " + message + " to channel: " + channel);
         jedisBroker.publish(channel, message);
     }
 
@@ -53,13 +54,17 @@ public class RedisManager {
         listeners.add(listener);
         executorService.submit(() -> {
             try {
-                jedisRW.subscribe(new JedisPubSub() {
+                JedisPubSub jedisPubSub = new JedisPubSub() {
                     @Override
                     public void onMessage(String channel, String message) {
-
                         listeners.forEach(listener -> listener.onMessage(new RedisMessage(channel, message)));
                     }
-                }, channel);
+                };
+
+                // Apri una nuova connessione Jedis per la sottoscrizione
+                try (Jedis jedis = new Jedis("http://217.160.155.226:19003")) {
+                    jedis.subscribe(jedisPubSub, channel);
+                }
                 System.out.println("Subscribed to channel: " + channel);
 
             } catch (Exception e) {
@@ -67,6 +72,7 @@ public class RedisManager {
             }
         });
     }
+
 
     //expose a method to kill the executor service
     public void kill(){

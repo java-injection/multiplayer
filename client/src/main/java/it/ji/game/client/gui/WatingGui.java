@@ -109,7 +109,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void userAccepted(String serverId, String username) {
+        System.out.println("[DEBUG][EVENT] User accepted: "+username);
         jLabel_message.setText(serverId+" : "+username+" accepted");
+        this.repaint();
     }
 
     @Override
