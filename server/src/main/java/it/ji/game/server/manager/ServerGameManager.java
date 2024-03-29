@@ -134,7 +134,7 @@ public class ServerGameManager implements RedisMessageListener {
         }
     }
     public void printBoard(){
-
+//todo: implement this method
         for (int i = 0; i < 3; i++){
             for (int j = 0; j < 3; j++){
                 System.out.print(localBoard[i][j] + " ");
