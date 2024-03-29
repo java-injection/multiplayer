@@ -93,6 +93,12 @@ public class ServerGameManager implements RedisMessageListener {
     }
 
 
+    public void startGame(){
+        initBoard();
+        printBoard();
+        System.out.println("Game started");
+        RedisManager.getInstance().publish("game.start", serverId);
+    }
 
     @Override
     public void onMessage(RedisMessage message) {
@@ -101,16 +107,17 @@ public class ServerGameManager implements RedisMessageListener {
             if (player1 == null){
                 player1 = new Player(message.message().split(":")[1].trim());
                 System.out.println("Player 1 logged in: "+player1.username());
+                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.username());
+            }else if (player2 == null){
+                player2 = new Player(message.message().split(":")[1].trim());
+                System.out.println("Player 2 logged in: "+player2.username());
+                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player2.username());
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.username());
-            }else if (player2 == null){
-                player2 = new Player(message.message());
-                System.out.println("Player 2 logged in: "+player2.username());
-                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.username());
+                startGame();
             }else{
                 System.out.println("Server full");
                 RedisManager.getInstance().publish("login.status.rejected", serverId+":"+message.message());

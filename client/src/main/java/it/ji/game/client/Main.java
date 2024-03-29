@@ -20,13 +20,9 @@ public class Main {
         ClientGameManager.getInstance().setServerId(serverId);
         System.out.println("insert username: ");
         String username = scanner.nextLine();
-        try {
-            ClientGameManager.getInstance().setSelfPlayer(new Player(username));
-            startWaitingGui();
-            ClientGameManager.getInstance().startClient(serverId, username);
-        } catch (ServerNotFoundException e) {
-            e.printStackTrace();
-        }
+        ClientGameManager.getInstance().setSelfPlayer(new Player(username));
+        startWaitingGui();
+
     }
      public  static void startGui(String username) {
          try {
@@ -82,6 +78,12 @@ public class Main {
          java.awt.EventQueue.invokeLater(new Runnable() {
              public void run() {
                  new WatingGui().setVisible(true);
+                 try {
+                     ClientGameManager.getInstance().startClient(ClientGameManager.getInstance().getServerId(),
+                             ClientGameManager.getInstance().getSelfPlayer());
+                 } catch (ServerNotFoundException e) {
+                     throw new RuntimeException(e);
+                 }
              }
          });
      }

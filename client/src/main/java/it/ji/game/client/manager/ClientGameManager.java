@@ -23,6 +23,7 @@ public class ClientGameManager implements RedisMessageListener {
 
     private ClientGameManager() {
         RedisManager.getInstance().subscribe("login.status.accepted", this);
+        RedisManager.getInstance().subscribe("game.start", this);
     }
     public void setSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
@@ -73,16 +74,29 @@ public class ClientGameManager implements RedisMessageListener {
 
     @Override
     public void onMessage(RedisMessage message) {
+
         System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
         if (message.channel().equals("login.status.accepted")) {
-            System.out.println("[DEBUG] handling messag in channel: <login.status.accepted>");
+            if (this.selfPlayer == null) {
+                System.out.println("[DEBUG] selfPlayer is null");
+                return;
+            }
+            System.out.println("[DEBUG] handling message in channel: <login.status.accepted>");
             String[] split = message.message().split(":");
             System.out.println("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]");
-            if (split[0].equals(serverId)) {
-                serverId = split[0];
-                String username = split[1];
-                System.out.println("[DEBUG] Server accepted user: " + username + " serverId: " + serverId);
-                clientListeners.forEach(listener -> listener.userAccepted(serverId,username));
+            String messageServerId = split[0];
+            String messageUsername = split[1];
+            if (messageServerId.equals(serverId) && messageUsername.equals(selfPlayer.username())) {
+                System.out.println("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId);
+                clientListeners.forEach(listener -> listener.userAccepted(messageServerId,messageUsername));
+            }
+        }
+        if (message.channel().equals("game.start")) {
+            System.out.println("[DEBUG] handling message in channel: <game.start>");
+            String messageServerId = message.message();
+            if (messageServerId.equals(serverId)) {
+                System.out.println("[DEBUG] Server started game for serverId: " + serverId);
+                clientListeners.forEach(listener -> listener.gameStarted(serverId));
             }
         }
     }

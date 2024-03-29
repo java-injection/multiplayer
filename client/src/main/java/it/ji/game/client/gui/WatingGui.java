@@ -19,6 +19,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public WatingGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListner(this);
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
     }
     
     public void setMessage(String text){
