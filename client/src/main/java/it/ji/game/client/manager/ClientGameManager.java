@@ -22,8 +22,7 @@ public class ClientGameManager implements RedisMessageListener {
     private LinkedList<ClientListener> clientListeners = new LinkedList<>();
 
     private ClientGameManager() {
-        RedisManager.getInstance().subscribe("login.status.accepted", this);
-        RedisManager.getInstance().subscribe("game.start", this);
+        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start");
     }
     public void setSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
@@ -71,10 +70,8 @@ public class ClientGameManager implements RedisMessageListener {
     public String getSelfPlayer() {
         return selfPlayer.username();
     }
-
     @Override
     public void onMessage(RedisMessage message) {
-
         System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
         if (message.channel().equals("login.status.accepted")) {
             if (this.selfPlayer == null) {

@@ -5,6 +5,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +51,7 @@ public class RedisManager {
         jedisBroker.publish(channel, message);
     }
 
-    public void subscribe(String channel, RedisMessageListener listener){
+    public void subscribe(RedisMessageListener listener, String ... channels){
         listeners.add(listener);
         executorService.submit(() -> {
             try {
@@ -63,9 +64,9 @@ public class RedisManager {
 
                 // Apri una nuova connessione Jedis per la sottoscrizione
                 try (Jedis jedis = new Jedis("http://217.160.155.226:19003")) {
-                    jedis.subscribe(jedisPubSub, channel);
+                    jedis.subscribe(jedisPubSub, channels);
                 }
-                System.out.println("Subscribed to channel: " + channel);
+                Arrays.stream(channels).forEach(channel -> System.out.println("Subscribed to channel: " + channel));
 
             } catch (Exception e) {
                 e.printStackTrace();
