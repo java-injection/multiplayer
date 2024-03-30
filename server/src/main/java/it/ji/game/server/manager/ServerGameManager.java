@@ -114,10 +114,10 @@ public class ServerGameManager implements RedisMessageListener {
 
     public void startGame(){
         initBoard();
-        printBoard();
         System.out.println("Game started");
         RedisManager.getInstance().publish("game.start", serverId);
         setInitialPositions();
+        printBoard();
     }
 
     @Override
@@ -137,7 +137,6 @@ public class ServerGameManager implements RedisMessageListener {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                startGame();
             }else{
                 System.out.println("Server full");
                 RedisManager.getInstance().publish("login.status.rejected", serverId+":"+message.message());
@@ -146,12 +145,6 @@ public class ServerGameManager implements RedisMessageListener {
     }
     private void initBoard(){
         localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
-
-        for (int i = 0; i < 3; i++){
-            for (int j = 0; j < 3; j++){
-                localBoard[i][j] = 0;
-            }
-        }
     }
     public void printBoard(){
 //todo: implement this method

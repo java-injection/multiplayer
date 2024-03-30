@@ -18,10 +18,10 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
     private Coordinates selfPosition;
     private Coordinates enemyPosition;
     private SingleCellPanel[][] board = new SingleCellPanel[30][30];
-    public MainGui(String username) {
+    public MainGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
-        this.setTitle(username);
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
         this.setBounds(0, 0, 800, 800);
         for(int i=0; i<20; i++){
             for(int j=0; j<20; j++){
@@ -148,7 +148,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainGui("username").setVisible(true);
+                new MainGui().setVisible(true);
             }
         });
     }

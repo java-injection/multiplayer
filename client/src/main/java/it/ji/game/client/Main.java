@@ -25,7 +25,7 @@ public class Main {
         startWaitingGui();
 
     }
-     public  static void startGui(String username) {
+     public  static void startGui() {
          try {
              for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                  if ("Nimbus".equals(info.getName())) {
@@ -47,7 +47,7 @@ public class Main {
          /* Create and display the form */
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    new MainGui(username).setVisible(true);
+                    new MainGui().setVisible(true);
                 }
             });
      }
@@ -80,8 +80,7 @@ public class Main {
              public void run() {
                  new WatingGui().setVisible(true);
                  try {
-                     ClientGameManager.getInstance().startClient(ClientGameManager.getInstance().getServerId(),
-                             ClientGameManager.getInstance().getSelfPlayer());
+                     ClientGameManager.getInstance().startClient();
                  } catch (ServerNotFoundException e) {
                      throw new RuntimeException(e);
                  }

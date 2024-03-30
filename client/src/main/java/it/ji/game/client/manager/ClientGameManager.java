@@ -56,12 +56,12 @@ public class ClientGameManager implements RedisMessageListener {
         return serverId;
     }
 
-    public void startClient(String serverId, String username) throws ServerNotFoundException {
-        if (serverId == null || username == null || serverId.isBlank() || username.isBlank() || serverId.isEmpty() || username.isEmpty() ) {
+    public void startClient() throws ServerNotFoundException {
+        if (serverId == null || selfPlayer == null || serverId.isBlank() || selfPlayer.username().isBlank() || serverId.isEmpty() || selfPlayer.username().isEmpty() ) {
             throw new IllegalArgumentException("serverId and username cannot be null");
         }
         if (isServerWaiting(serverId)) {
-            RedisManager.getInstance().publish("login", serverId + ":" + username);
+            RedisManager.getInstance().publish("login", serverId + ":" + selfPlayer.username());
             System.out.println("Waiting for the server to start the game ..");
         }
         else {
@@ -99,13 +99,12 @@ public class ClientGameManager implements RedisMessageListener {
             }
         }
         if (message.channel().equals("game.start")) {
-            System.out.println("[DEBUG] handling message in channel: <game.start>");
+            System.out.println("[DEBUG] handling message in channel: <game.start>"+message.message());
             String messageServerId = message.message();
+
             if (messageServerId.equals(serverId)) {
                 System.out.println("[DEBUG] Server started game for serverId: " + serverId);
-//                synchronized (clientListeners) {
-                    clientListeners.forEach(listener -> listener.gameStarted(serverId));
-//                }
+                clientListeners.forEach(listener -> listener.gameStarted(serverId));
             }
         }
         if (message.channel().equals("game.init")) {
