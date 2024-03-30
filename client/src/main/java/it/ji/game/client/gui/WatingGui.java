@@ -6,6 +6,7 @@ package it.ji.game.client.gui;
 
 import it.ji.game.client.Main;
 import it.ji.game.client.manager.ClientGameManager;
+import it.ji.game.utils.logic.Coordinates;
 
 /**
  *
@@ -18,7 +19,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
      */
     public WatingGui() {
         initComponents();
-        ClientGameManager.getInstance().addClientListner(this);
+        ClientGameManager.getInstance().addClientListener(this);
         this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
         this.setAlwaysOnTop(true);
 
@@ -132,6 +133,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void gameEnded(String serverId) {
+
+    }
+
+    @Override
+    public void positionChanged(String username, Coordinates coordinates) {
 
     }
     // End of variables declaration//GEN-END:variables

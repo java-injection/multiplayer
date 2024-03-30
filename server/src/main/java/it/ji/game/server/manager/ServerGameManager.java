@@ -86,7 +86,23 @@ public class ServerGameManager implements RedisMessageListener {
         }
     }
 
+    public void setInitialPositions() {
+        Coordinates p1RandomInitCoords = getRandomCoordinates();
+        Coordinates p2RandomInitCoords = getRandomCoordinates();
+        while (p1RandomInitCoords.equals(p2RandomInitCoords)){
+            p2RandomInitCoords = getRandomCoordinates();
+        }
+        localBoard[p1RandomInitCoords.x()][p1RandomInitCoords.y()] = 1;
+        localBoard[p2RandomInitCoords.x()][p2RandomInitCoords.y()] = 2;
+        RedisManager.getInstance().publish("game.init", serverId+":"+player1.username()+":"+p1RandomInitCoords.x()+","+p1RandomInitCoords.y());
+        RedisManager.getInstance().publish("game.init", serverId+":"+player2.username()+":"+p2RandomInitCoords.x()+","+p2RandomInitCoords.y());
+    }
 
+
+    //todo spostare in utils
+    public static Coordinates getRandomCoordinates(){
+        return new Coordinates((int) (Math.random()*10),(int) (Math.random()*10));
+    }
     public void shutDownServer(){
         RedisManager.getInstance().hdelete(GAME_NAME, serverId);
         RedisManager.getInstance().shutdown();
@@ -141,5 +157,11 @@ public class ServerGameManager implements RedisMessageListener {
             }
             System.out.println();
         }
+    }
+
+    public static void main(String[] args) {
+        ServerGameManager.getInstance().player1 = new Player("player1");
+        ServerGameManager.getInstance().player2 = new Player("player2");
+        ServerGameManager.getInstance().setInitialPositions();
     }
 }

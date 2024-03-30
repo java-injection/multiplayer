@@ -3,12 +3,14 @@ package it.ji.game.client.manager;
 
 import it.ji.game.client.exceptions.ServerNotFoundException;
 import it.ji.game.client.gui.ClientListener;
+import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
 import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
+import it.ji.game.utils.utilities.Utilities;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -24,7 +26,7 @@ public class ClientGameManager implements RedisMessageListener {
     private List<ClientListener> clientListeners = Collections.synchronizedList(new LinkedList<>());
 
     private ClientGameManager() {
-        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start");
+        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start", "game.init");
     }
     public void setSelfPlayer(Player selfPlayer) {
         this.selfPlayer = selfPlayer;
@@ -33,8 +35,8 @@ public class ClientGameManager implements RedisMessageListener {
         this.enemyPlayer = enemyPlayer;
     }
 
-    public void addClientListner(ClientListener listner){
-        clientListeners.add(listner);
+    public void addClientListener(ClientListener listener){
+        clientListeners.add(listener);
     }
     public static ClientGameManager getInstance() {
         if (instance == null) {
@@ -72,6 +74,7 @@ public class ClientGameManager implements RedisMessageListener {
     public String getSelfPlayer() {
         return selfPlayer.username();
     }
+
     @Override
     public void onMessage(RedisMessage message) {
         System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
@@ -102,5 +105,26 @@ public class ClientGameManager implements RedisMessageListener {
                 }
             }
         }
+        if (message.channel().equals("game.init")) {
+            initPositions(message);
+        }
     }
+
+    private void initPositions(RedisMessage message) {
+        System.out.println("[DEBUG] handling message in channel: <game.init>");
+        String channelMessage = message.message();
+        String[] split = channelMessage.split(":");
+        String initMessageServerId = split[0];
+        String initMessageUsername = split[1];
+        String initMessagePosition = split[2];
+        String[] splitCoordinates = initMessagePosition.split(",");
+        Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
+        if (!initMessageServerId.equals(serverId)){
+            return;
+        }
+        System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
+
+    }
+
+
 }

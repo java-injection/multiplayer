@@ -5,6 +5,7 @@
 package it.ji.game.client.gui;
 
 import it.ji.game.client.manager.ClientGameManager;
+import it.ji.game.utils.logic.Coordinates;
 
 /**
  *
@@ -17,7 +18,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
      */
     public MainGui(String username) {
         initComponents();
-        ClientGameManager.getInstance().addClientListner(this);
+        ClientGameManager.getInstance().addClientListener(this);
         this.setTitle(username);
         this.setBounds(0, 0, 800, 800);
         for(int i=0; i<20; i++){
@@ -155,6 +156,11 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void gameEnded(String serverId) {
+
+    }
+
+    @Override
+    public void positionChanged(String username, Coordinates coordinates) {
 
     }
     // End of variables declaration//GEN-END:variables
