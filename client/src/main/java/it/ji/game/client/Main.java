@@ -6,6 +6,7 @@ import it.ji.game.client.gui.WatingGui;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Player;
 
+import javax.swing.*;
 import java.util.Scanner;
 
 public class Main {
@@ -44,11 +45,11 @@ public class Main {
          //</editor-fold>
 
          /* Create and display the form */
-         java.awt.EventQueue.invokeLater(new Runnable() {
-             public void run() {
-                 new MainGui(username).setVisible(true);
-             }
-         });
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    new MainGui(username).setVisible(true);
+                }
+            });
      }
      public static void startWaitingGui(){
          /* Set the Nimbus look and feel */

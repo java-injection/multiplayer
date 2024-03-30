@@ -28,6 +28,10 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         this.setLocationRelativeTo(null);
     }
 
+    public void register(){
+        ClientGameManager.getInstance().addClientListner(this);
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

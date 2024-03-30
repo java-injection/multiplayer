@@ -13,6 +13,7 @@ import it.ji.game.utils.settings.Status;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClientGameManager implements RedisMessageListener {
     private static ClientGameManager instance = null;
@@ -21,7 +22,7 @@ public class ClientGameManager implements RedisMessageListener {
 
     private Player selfPlayer;
     private Player enemyPlayer;
-    private List<ClientListener> clientListeners = Collections.synchronizedList(new LinkedList<>());
+    private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
 
     private ClientGameManager() {
         RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start");
@@ -87,9 +88,9 @@ public class ClientGameManager implements RedisMessageListener {
             String messageUsername = split[1];
             if (messageServerId.equals(serverId) && messageUsername.equals(selfPlayer.username())) {
                 System.out.println("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId);
-                synchronized (clientListeners) {
+//                synchronized (clientListeners) {
                     clientListeners.forEach(listener -> listener.userAccepted(messageServerId, messageUsername));
-                }
+//                }
             }
         }
         if (message.channel().equals("game.start")) {
@@ -97,9 +98,9 @@ public class ClientGameManager implements RedisMessageListener {
             String messageServerId = message.message();
             if (messageServerId.equals(serverId)) {
                 System.out.println("[DEBUG] Server started game for serverId: " + serverId);
-                synchronized (clientListeners) {
+//                synchronized (clientListeners) {
                     clientListeners.forEach(listener -> listener.gameStarted(serverId));
-                }
+//                }
             }
         }
     }
