@@ -7,15 +7,17 @@ package it.ji.game.client.gui;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 
+import java.awt.*;
+
 /**
  *
  * @author sommovir
  */
 public class MainGui extends javax.swing.JFrame implements ClientListener {
 
-    /**
-     * Creates new form MainGui
-     */
+    private Coordinates selfPosition;
+    private Coordinates enemyPosition;
+    private SingleCellPanel[][] board;
     public MainGui(String username) {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
@@ -23,14 +25,28 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         this.setBounds(0, 0, 800, 800);
         for(int i=0; i<20; i++){
             for(int j=0; j<20; j++){
-                this.jPanel_container.add(new SingleCellPanel(""+i+", "+j));
+                SingleCellPanel singleCellPanel = new SingleCellPanel(i + ", " + j);
+                this.jPanel_container.add(singleCellPanel);
+                board[i][j] = singleCellPanel;
             }
         }
         this.setLocationRelativeTo(null);
     }
 
-    public void register(){
-        ClientGameManager.getInstance().addClientListner(this);
+    public Coordinates getSelfPosition() {
+        return selfPosition;
+    }
+
+    public void setSelfPosition(Coordinates selfPosition) {
+        this.selfPosition = selfPosition;
+    }
+
+    public Coordinates getEnemyPosition() {
+        return enemyPosition;
+    }
+
+    public void setEnemyPosition(Coordinates enemyPosition) {
+        this.enemyPosition = enemyPosition;
     }
 
     /**
@@ -165,7 +181,21 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void positionChanged(String username, Coordinates coordinates) {
-
+        System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+coordinates);
+        if (ClientGameManager.getInstance().getSelfPlayer().equals(username)){
+            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.GREEN);
+            if (selfPosition != null){
+                board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
+            }
+            selfPosition = coordinates;
+        }
+        else {
+            board[coordinates.x()][coordinates.y()].setBackgroundColor(java.awt.Color.RED);
+            if (enemyPosition != null){
+                board[enemyPosition.x()][enemyPosition.y()].setBackgroundColor(Color.WHITE);
+            }
+            enemyPosition = coordinates;
+        }
     }
     // End of variables declaration//GEN-END:variables
 }

@@ -23,6 +23,7 @@ public class ClientGameManager implements RedisMessageListener {
     private Integer[][] localBoard;
 
     private Player selfPlayer;
+    //todo setta questo player con il player che ricevi dal server
     private Player enemyPlayer;
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
 
@@ -124,7 +125,9 @@ public class ClientGameManager implements RedisMessageListener {
             return;
         }
         System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
-
+        for (ClientListener clientListener : clientListeners) {
+            clientListener.positionChanged(initMessageUsername, xy);
+        }
     }
 
 
