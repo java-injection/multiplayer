@@ -17,7 +17,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     private Coordinates selfPosition;
     private Coordinates enemyPosition;
-    private SingleCellPanel[][] board;
+    private SingleCellPanel[][] board = new SingleCellPanel[30][30];
     public MainGui(String username) {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);

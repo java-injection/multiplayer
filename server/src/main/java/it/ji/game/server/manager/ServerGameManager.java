@@ -21,6 +21,9 @@ public class ServerGameManager implements RedisMessageListener {
     private Map<String, Coordinates> playersToCoordinates;
 
     private ServerGameManager() {
+        //todo implementare bene la local board
+        System.out.println("[DEBUG] Height: " + Settings.getInstance().getHeight()+ " Width: " + Settings.getInstance().getWitdh() );
+        localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     }
 
     public static ServerGameManager getInstance() {
@@ -79,7 +82,7 @@ public class ServerGameManager implements RedisMessageListener {
                 }
             }
             System.out.println(" ************************ Server started ************************ ");
-            RedisManager.getInstance().kill();
+            startGame();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -101,7 +104,7 @@ public class ServerGameManager implements RedisMessageListener {
 
     //todo spostare in utils
     public static Coordinates getRandomCoordinates(){
-        return new Coordinates((int) (Math.random()*10),(int) (Math.random()*10));
+        return new Coordinates((int) (Math.random()*Settings.getInstance().getHeight()),(int) (Math.random()*Settings.getInstance().getWitdh()));
     }
     public void shutDownServer(){
         RedisManager.getInstance().hdelete(GAME_NAME, serverId);
@@ -114,6 +117,7 @@ public class ServerGameManager implements RedisMessageListener {
         printBoard();
         System.out.println("Game started");
         RedisManager.getInstance().publish("game.start", serverId);
+        setInitialPositions();
     }
 
     @Override

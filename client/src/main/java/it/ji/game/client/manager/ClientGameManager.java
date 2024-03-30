@@ -3,6 +3,7 @@ package it.ji.game.client.manager;
 
 import it.ji.game.client.exceptions.ServerNotFoundException;
 import it.ji.game.client.gui.ClientListener;
+import it.ji.game.client.gui.WatingGui;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.redis.RedisManager;
@@ -20,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ClientGameManager implements RedisMessageListener {
     private static ClientGameManager instance = null;
     private String serverId;
-    private Integer[][] localBoard;
+    private Integer[][] localBoard; //si dovrebbe poter levare
 
     private Player selfPlayer;
     //todo setta questo player con il player che ricevi dal server
@@ -108,6 +109,7 @@ public class ClientGameManager implements RedisMessageListener {
             }
         }
         if (message.channel().equals("game.init")) {
+
             initPositions(message);
         }
     }
@@ -117,11 +119,15 @@ public class ClientGameManager implements RedisMessageListener {
         String channelMessage = message.message();
         String[] split = channelMessage.split(":");
         String initMessageServerId = split[0];
+        System.out.println("[DEBUG] initMessageServerId: [" + initMessageServerId+"]");
         String initMessageUsername = split[1];
+        System.out.println("[DEBUG] initMessageUsername: [" + initMessageUsername+"]");
         String initMessagePosition = split[2];
         String[] splitCoordinates = initMessagePosition.split(",");
+        System.out.println("[DEBUG] splitCoordinates: [" + splitCoordinates[0] + "] and [" + splitCoordinates[1] + "]");
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
         if (!initMessageServerId.equals(serverId)){
+            System.out.println("[DEBUG] ServerId does not match");
             return;
         }
         System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
@@ -131,4 +137,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
 
+    public void removeClientListener(ClientListener clientListener) {
+        clientListeners.remove(clientListener);
+    }
 }

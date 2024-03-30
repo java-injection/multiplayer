@@ -128,6 +128,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public void gameStarted(String serverId) {
         this.setVisible(false);
         Main.startGui(ClientGameManager.getInstance().getSelfPlayer());
+        ClientGameManager.getInstance().removeClientListener(this);
         this.dispose();
     }
 
