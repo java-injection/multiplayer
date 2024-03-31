@@ -80,6 +80,11 @@ public class ClientGameManager implements RedisMessageListener {
 
     @Override
     public void onMessage(RedisMessage message) {
+        if (message == null || message.message() == null || message.channel() == null){
+            System.out.println("[DEBUG] message is null or message.message() is null or message.channel() is null");
+            return;
+        }
+
         System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
         if (message.channel().equals("login.status.accepted")) {
             if (this.selfPlayer == null) {
