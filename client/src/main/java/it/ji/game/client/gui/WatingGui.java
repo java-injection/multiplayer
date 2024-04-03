@@ -137,7 +137,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     }
 
     @Override
-    public void positionChanged(String username, Direction direction ) {
+    public void positionChanged(String username, Coordinates direction ) {
 
     }
     // End of variables declaration//GEN-END:variables

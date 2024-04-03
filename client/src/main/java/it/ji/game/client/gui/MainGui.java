@@ -78,32 +78,22 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
 
     @Override
-    public void positionChanged(String username, Direction direction) {
-        System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+direction);
+    public void positionChanged(String username, Coordinates coordinates) {
+        System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+coordinates);
         Player selfPlayer = ClientGameManager.getInstance().getPlayerFromType(PlayerType.SELF);
         if (username.equals(selfPlayer.username())){
-            movePlayerToDirection(PlayerType.SELF, direction);
+            movePlayerToDirection(PlayerType.SELF, coordinates);
         }else {
-
+            movePlayerToDirection(PlayerType.ENEMY, coordinates);
         }
     }
-    public void movePlayerToDirection(PlayerType playerType, Direction direction){
-        switch (direction){
-            case UP:
-                moveUp(playerType);
-                break;
-            case DOWN:
-                moveDown(playerType);
-                break;
-            case LEFT:
-                moveLeft(playerType);
-                break;
-            case RIGHT:
-                moveRight(playerType);
-                break;
-        }
+    public void movePlayerToDirection(PlayerType playerType, Coordinates direction){
+           System.out.println("[DEBUG][EVENT] Moving player to direction: "+direction);
+            Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
+            ClientGameManager.getInstance().updateLocalBoardByUsername(direction, player);
     }
     public void moveUp(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
+        System.out.println("[DEBUG][EVENT] Moving up");
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
         Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
         ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x(), coordinates.y() - 1), player);
@@ -210,6 +200,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         // TODO add your handling code here: REFACTORARE COME HA DETTO LUCA FACENDO SPARIRE I NUMERI E METTENDO COSTANTI TIPO ENUM
         System.out.println("Key pressed: "+evt.getKeyCode());
         int keyCode = evt.getKeyCode();
+        System.out.println("Key code: "+keyCode);
         if (keyCode != KeyEvent.VK_W && keyCode != KeyEvent.VK_S && keyCode != KeyEvent.VK_A && keyCode != KeyEvent.VK_D){
             return;
         }

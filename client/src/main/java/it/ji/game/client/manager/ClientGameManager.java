@@ -28,7 +28,7 @@ public class ClientGameManager implements RedisMessageListener {
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
 
     private ClientGameManager() {
-        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start", "game.init","game.move");
+        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start", "game.init","game.move.client");
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
@@ -164,12 +164,16 @@ public class ClientGameManager implements RedisMessageListener {
 
             initPositions(message);
         }
-        if (message.channel().equals("game.move")){
-            /*System.out.println("[DEBUG] handling message in channel: <game.move>");
+        if (message.channel().equals("game.move.client")){
+            System.out.println("[DEBUG] handling message in channel: <game.move.client>");
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageUsername = split[1];
             String messagePosition = split[2];
+            if (messageUsername.equals(getSelfPlayer().username())) {
+                System.out.println("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition);
+                return;
+            }
             String[] splitCoordinates = messagePosition.split(",");
             Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
             if (!messageServerId.equals(serverId)){
@@ -178,9 +182,8 @@ public class ClientGameManager implements RedisMessageListener {
             }
             System.out.println("[DEBUG] Server moved player: " + messageUsername + " to position: " + xy);
             for (ClientListener clientListener : clientListeners) {
-
                 clientListener.positionChanged(messageUsername, xy);
-            }*/
+            }
         }
     }
 
@@ -200,11 +203,31 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] ServerId does not match");
             return;
         }
+        Player playerFromType = getPlayerFromType(PlayerType.SELF);
+        if (playerFromType.username().equals(initMessageUsername)) {
+            setLocalBoardCoordinates(xy, PlayerType.SELF);
+        } else {
+            setLocalBoardCoordinates(xy, PlayerType.ENEMY);
+        }
         System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
 
     }
     private void setLocalBoardCoordinates(Coordinates coordinates, PlayerType playerType) throws ArrayIndexOutOfBoundsException{
-        localBoard[coordinates.x()][coordinates.y()].setBackgroundColor(playerType == PlayerType.SELF ? Color.GREEN : Color.RED);
+       Player player = playerPositions.keySet().stream().filter(p -> p.type() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
+       Coordinates previousCoordinates = playerPositions.get(player);
+        if (playerType == PlayerType.SELF) {
+            localBoard[coordinates.x()][coordinates.y()].setBackground(Color.GREEN);
+        } else {
+            localBoard[coordinates.x()][coordinates.y()].setBackground(Color.RED);
+        }
+        playerPositions.put(player, coordinates);
+        if (previousCoordinates != null) {
+            localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
+        }
+        if (playerType == PlayerType.ENEMY) {
+            return;
+        }
+        RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.username() + ":" + coordinates.x() + "," + coordinates.y());
     }
 
     public void removeClientListener(ClientListener clientListener) {
