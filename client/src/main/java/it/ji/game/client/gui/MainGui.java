@@ -11,6 +11,7 @@ import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.settings.Settings;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -19,16 +20,33 @@ import java.util.ResourceBundle;
  */
 public class MainGui extends javax.swing.JFrame implements ClientListener {
 
-    private Coordinates selfPosition;
-    private Coordinates enemyPosition;
-    private SingleCellPanel[][] board = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
+    private HashMap<String, Coordinates> players = new HashMap<>();
+    private SingleCellPanel[][] board = new SingleCellPanel[20][20];
     public MainGui() {
         initComponents();
+        players.put("SELF", null);
+        players.put("ENEMY", null);
         ClientGameManager.getInstance().addClientListener(this);
         this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
         this.setBounds(0, 0, 800, 800);
-        for(int i=0; i<board.length; i++){//board.length è il numero di righe
-            for(int j=0; j<board[i].length; j++){//board[i].length è il numero di colonne
+        for(int i=0; i<Settings.getInstance().getHeight(); i++){
+            for(int j=0; j<Settings.getInstance().getWitdh(); j++){
+                SingleCellPanel singleCellPanel = new SingleCellPanel(j + ", " + i);
+                this.jPanel_container.add(singleCellPanel);
+                board[j][i] = singleCellPanel;
+            }
+        }
+        this.setLocationRelativeTo(null);
+    }
+
+    //For testing purposes
+    MainGui(boolean b) {
+        initComponents();
+        players.put("SELF", null);
+        players.put("ENEMY", null);
+        this.setBounds(0, 0, 800, 800);
+        for(int i=0; i<20; i++){
+            for(int j=0; j<20; j++){
                 SingleCellPanel singleCellPanel = new SingleCellPanel(j + ", " + i);
                 this.jPanel_container.add(singleCellPanel);
                 board[j][i] = singleCellPanel;
@@ -38,19 +56,19 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
     }
 
     public Coordinates getSelfPosition() {
-        return selfPosition;
+        return players.get("SELF");
     }
 
     public void setSelfPosition(Coordinates selfPosition) {
-        this.selfPosition = selfPosition;
+        players.put("SELF", selfPosition);
     }
 
     public Coordinates getEnemyPosition() {
-        return enemyPosition;
+        return players.get("ENEMY");
     }
 
     public void setEnemyPosition(Coordinates enemyPosition) {
-        this.enemyPosition = enemyPosition;
+        players.put("ENEMY", enemyPosition);
     }
 
     @Override
@@ -78,18 +96,45 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+coordinates);
         if (ClientGameManager.getInstance().getSelfPlayer().equals(username)){
             board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.GREEN);
-            if (selfPosition != null){
-                board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
+            if (players.get("SELF") != null){
+                board[players.get("SELF").x()][players.get("SELF").y()].setBackgroundColor(Color.WHITE);
             }
-            selfPosition = coordinates;
+            players.put("SELF", coordinates);
         }
         else {
-            board[coordinates.x()][coordinates.y()].setBackgroundColor(java.awt.Color.RED);
-            if (enemyPosition != null){
-                board[enemyPosition.x()][enemyPosition.y()].setBackgroundColor(Color.WHITE);
+            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.RED);
+            if (players.get("ENEMY") != null){
+                board[players.get("ENEMY").x()][players.get("ENEMY").y()].setBackgroundColor(Color.WHITE);
             }
-            enemyPosition = coordinates;
+            players.put("ENEMY", coordinates);
         }
+    }
+    public void moveUp(String username) throws ArrayIndexOutOfBoundsException{
+        Coordinates coordinates = players.get(username);
+        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
+        players.put(username, new Coordinates(coordinates.x(), coordinates.y() - 1));
+        board[coordinates.x()][coordinates.y() - 1].setBackgroundColor(Color.GREEN);
+    }
+
+    public void moveDown(String username) throws ArrayIndexOutOfBoundsException{
+        Coordinates coordinates = players.get(username);
+        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
+        players.put(username, new Coordinates(coordinates.x(), coordinates.y() + 1));
+        board[coordinates.x()][coordinates.y() + 1].setBackgroundColor(Color.GREEN);
+    }
+
+    public void moveLeft(String username) throws ArrayIndexOutOfBoundsException{
+        Coordinates coordinates = players.get(username);
+        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
+        players.put(username, new Coordinates(coordinates.x() - 1, coordinates.y()));
+        board[coordinates.x() - 1][coordinates.y()].setBackgroundColor(Color.GREEN);
+    }
+
+    public void moveRight(String username) throws ArrayIndexOutOfBoundsException{
+        Coordinates coordinates = players.get(username);
+        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
+        players.put(username, new Coordinates(coordinates.x() + 1, coordinates.y()));
+        board[coordinates.x() + 1][coordinates.y()].setBackgroundColor(Color.GREEN);
     }
 
 
@@ -167,61 +212,41 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        String actionCommand = evt.getActionCommand();
-        if (actionCommand.equals("w")) {
-            board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
-            selfPosition = new Coordinates(selfPosition.x(), selfPosition.y() - 1);
-            board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.GREEN);
-        }
+
     }                                        
 //GEN-LAST:event_jButton1ActionPerformed
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jButton1KeyPressed
         // TODO add your handling code here:
         System.out.println("Key pressed: "+evt.getKeyCode());
+        Coordinates coordinates = players.get("SELF");
         int keyCode = evt.getKeyCode();
         if (keyCode != 87 && keyCode != 83 && keyCode != 65 && keyCode != 68){
             return;
         }
-        if (keyCode == 87){
-            moveUp();
+        try {
+            if (keyCode == 87) {
+                moveUp("SELF");
+            }
+            if (keyCode == 83) {
+                moveDown("SELF");
+            }
+            if (keyCode == 65) {
+                moveLeft("SELF");
+            }
+            if (keyCode == 68) {
+                moveRight("SELF");
+            }
+            RedisManager.getInstance().publish("game.move", ClientGameManager.getInstance().getServerId() + ":" + ClientGameManager.getInstance().getSelfPlayer() + ":" + coordinates.x() + "," + coordinates.y());
+        } catch (ArrayIndexOutOfBoundsException e){
+            System.out.println("[DEBUG] Out of bounds");
+            players.put("SELF", coordinates);
+            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.GREEN);
         }
-        if (keyCode == 83){
-            moveDown();
-        }
-        if (keyCode == 65){
-            moveLeft();
-        }
-        if (keyCode == 68){
-            moveRight();
-        }
+
 
     }//GEN-LAST:event_jButton1KeyPressed
-    public void moveUp(){
-            //add checkl of out of bounds
 
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
-        selfPosition = new Coordinates(selfPosition.x(), selfPosition.y() - 1);
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.GREEN);
-    }
-    public void moveDown(){
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
-        selfPosition = new Coordinates(selfPosition.x(), selfPosition.y() + 1);
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.GREEN);
-    }
-    public void moveLeft(){
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
-        selfPosition = new Coordinates(selfPosition.x() - 1, selfPosition.y());
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.GREEN);
-    }
-    public void moveRight(){
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.WHITE);
-        selfPosition = new Coordinates(selfPosition.x() + 1, selfPosition.y());
-        board[selfPosition.x()][selfPosition.y()].setBackgroundColor(Color.GREEN);
-    }
-    public boolean isOutOfBounds(Coordinates coordinates){
-        return coordinates.x() < 0 || coordinates.x() >= board[0].length || coordinates.y() < 0 || coordinates.y() >=board.length ;
-    }
     /**
      * @param args the command line arguments
      */
@@ -269,7 +294,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainGui().setVisible(true);
+                new MainGui(true).setVisible(true);
             }
         });
     }

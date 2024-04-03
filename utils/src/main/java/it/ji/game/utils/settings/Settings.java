@@ -40,10 +40,10 @@ public class Settings {
         }
     }
     public int getWitdh(){
-        return 10;
+        return Integer.parseInt(settings.get(SettingsKey.MATRIX_COLUMNS));
     }
     public int getHeight(){
-        return 10;
+        return Integer.parseInt(settings.get(SettingsKey.MATRIX_ROWS));
     }
     public String getGameName(){
         return "MATRICE";
