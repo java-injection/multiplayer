@@ -20,7 +20,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public WatingGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
-        this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().username());
         this.setAlwaysOnTop(true);
 
 
@@ -128,9 +128,6 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public void gameStarted(String serverId) {
         this.setVisible(false);
         Main.startGui();
-/*
-        ClientGameManager.getInstance().removeClientListener(this);
-*/
         this.dispose();
     }
 
@@ -140,7 +137,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     }
 
     @Override
-    public void positionChanged(String username, Coordinates coordinates) {
+    public void positionChanged(String username, Direction direction ) {
 
     }
     // End of variables declaration//GEN-END:variables

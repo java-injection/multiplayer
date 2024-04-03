@@ -3,13 +3,12 @@ package it.ji.game.server.manager;
 import it.ji.game.server.Utils;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
 import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
-
-import java.util.Map;
 
 public class ServerGameManager implements RedisMessageListener {
     private static ServerGameManager instance = null;
@@ -18,10 +17,11 @@ public class ServerGameManager implements RedisMessageListener {
     private Integer[][] localBoard;
     private Player player1;
     private Player player2;
-    private Map<String, Coordinates> playersToCoordinates;
+
 
     private ServerGameManager() {
         //todo implementare bene la local board
+
         System.out.println("[DEBUG] Height: " + Settings.getInstance().getHeight()+ " Width: " + Settings.getInstance().getWitdh() );
         localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     }
@@ -52,14 +52,14 @@ public class ServerGameManager implements RedisMessageListener {
             System.out.println("[GameServer] Server Id: " + serverId);
             RedisManager.getInstance().hset(GAME_NAME,serverId, String.valueOf(Status.WAITING));
             System.out.println("[DEBUG] Subscribing...");
-            RedisManager.getInstance().subscribe(
+            /*RedisManager.getInstance().subscribe(
                     message -> {
                         System.out.println("<<<<<<<<[ERROR] Received message: " + message.message() + " from channel: " + message.channel());
                     },"login"
-            );
+            );*/
 
             //create a waiting thread that listen for players to login through the redis publish/subscribe system
-            RedisManager.getInstance().subscribe(this,"login");
+            RedisManager.getInstance().subscribe(this,"login","game.move");
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
 
             int elapsed = 0;
@@ -115,7 +115,7 @@ public class ServerGameManager implements RedisMessageListener {
     public void startGame(){
         initBoard();
         System.out.println("Game started");
-        RedisManager.getInstance().publish("game.start", serverId);
+        RedisManager.getInstance().publish("game.start", serverId+":"+player1.username()+":"+player2.username());
         setInitialPositions();
         printBoard();
     }
@@ -125,11 +125,11 @@ public class ServerGameManager implements RedisMessageListener {
 
         if (message.channel().equals("login")){
             if (player1 == null){
-                player1 = new Player(message.message().split(":")[1].trim());
+                player1 = new Player(message.message().split(":")[1].trim(), PlayerType.SERVER);
                 System.out.println("Player 1 logged in: "+player1.username());
                 RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.username());
             }else if (player2 == null){
-                player2 = new Player(message.message().split(":")[1].trim());
+                player2 = new Player(message.message().split(":")[1].trim(), PlayerType.SERVER);
                 System.out.println("Player 2 logged in: "+player2.username());
                 RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player2.username());
                 try {
@@ -141,6 +141,25 @@ public class ServerGameManager implements RedisMessageListener {
                 System.out.println("Server full");
                 RedisManager.getInstance().publish("login.status.rejected", serverId+":"+message.message());
             }
+        }
+        if (message.channel().equals("game.move")){
+            System.out.println("Received move: "+message.message());
+            String[] split = message.message().split(":");
+            String messageServerId = split[0];
+            String messageusername = split[1];
+            String[] messageCoords = split[2].split(",");
+            int x = Integer.parseInt(messageCoords[0]);
+            int y = Integer.parseInt(messageCoords[1]);
+            if (messageServerId.matches(serverId)){
+                if (messageusername.matches(player1.username())){
+                    localBoard[x][y] = 1;
+                }else if (messageusername.matches(player2.username())){
+                    localBoard[x][y] = 2;
+                }
+                System.out.println("Player "+messageusername+" moved to "+x+","+y);
+                RedisManager.getInstance().publish("game.move", serverId+":"+messageusername+":"+x+","+y);
+            }
+            printBoard();
         }
     }
     private void initBoard(){
@@ -154,11 +173,5 @@ public class ServerGameManager implements RedisMessageListener {
             }
             System.out.println();
         }
-    }
-
-    public static void main(String[] args) {
-        ServerGameManager.getInstance().player1 = new Player("player1");
-        ServerGameManager.getInstance().player2 = new Player("player2");
-        ServerGameManager.getInstance().setInitialPositions();
     }
 }

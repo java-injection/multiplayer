@@ -7,12 +7,12 @@ package it.ji.game.client.gui;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.settings.Settings;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.ResourceBundle;
+import java.awt.event.KeyEvent;
 
 /**
  *
@@ -20,15 +20,17 @@ import java.util.ResourceBundle;
  */
 public class MainGui extends javax.swing.JFrame implements ClientListener {
 
-    private HashMap<String, Coordinates> players = new HashMap<>();
-    private SingleCellPanel[][] board = new SingleCellPanel[20][20];
+   // private SingleCellPanel[][] board = new SingleCellPanel[20][20];
     public MainGui() {
         initComponents();
-        players.put("SELF", null);
-        players.put("ENEMY", null);
         ClientGameManager.getInstance().addClientListener(this);
-        this.setTitle(ClientGameManager.getInstance().getSelfPlayer());
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().username());
         this.setBounds(0, 0, 800, 800);
+        ClientGameManager.getInstance().setLocalBoard(initBoard());
+        this.setLocationRelativeTo(null);
+    }
+    public SingleCellPanel[][] initBoard(){
+        SingleCellPanel[][] board = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
         for(int i=0; i<Settings.getInstance().getHeight(); i++){
             for(int j=0; j<Settings.getInstance().getWitdh(); j++){
                 SingleCellPanel singleCellPanel = new SingleCellPanel(j + ", " + i);
@@ -36,14 +38,13 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
                 board[j][i] = singleCellPanel;
             }
         }
-        this.setLocationRelativeTo(null);
+        return board;
     }
-
     //For testing purposes
-    MainGui(boolean b) {
+   /* MainGui(boolean b) {
         initComponents();
-        players.put("SELF", null);
-        players.put("ENEMY", null);
+        playerPositions.put(PlayerType.SELF, null);
+        playerPositions.put(PlayerType.ENEMY, null);
         this.setBounds(0, 0, 800, 800);
         for(int i=0; i<20; i++){
             for(int j=0; j<20; j++){
@@ -53,23 +54,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
             }
         }
         this.setLocationRelativeTo(null);
-    }
-
-    public Coordinates getSelfPosition() {
-        return players.get("SELF");
-    }
-
-    public void setSelfPosition(Coordinates selfPosition) {
-        players.put("SELF", selfPosition);
-    }
-
-    public Coordinates getEnemyPosition() {
-        return players.get("ENEMY");
-    }
-
-    public void setEnemyPosition(Coordinates enemyPosition) {
-        players.put("ENEMY", enemyPosition);
-    }
+    }*/
 
     @Override
     public void userAccepted(String serverId, String username) {
@@ -91,50 +76,55 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     }
 
+
     @Override
-    public void positionChanged(String username, Coordinates coordinates) {
-        System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+coordinates);
-        if (ClientGameManager.getInstance().getSelfPlayer().equals(username)){
-            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.GREEN);
-            if (players.get("SELF") != null){
-                board[players.get("SELF").x()][players.get("SELF").y()].setBackgroundColor(Color.WHITE);
-            }
-            players.put("SELF", coordinates);
-        }
-        else {
-            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.RED);
-            if (players.get("ENEMY") != null){
-                board[players.get("ENEMY").x()][players.get("ENEMY").y()].setBackgroundColor(Color.WHITE);
-            }
-            players.put("ENEMY", coordinates);
+    public void positionChanged(String username, Direction direction) {
+        System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+direction);
+        Player selfPlayer = ClientGameManager.getInstance().getPlayerFromType(PlayerType.SELF);
+        if (username.equals(selfPlayer.username())){
+            movePlayerToDirection(PlayerType.SELF, direction);
+        }else {
+
         }
     }
-    public void moveUp(String username) throws ArrayIndexOutOfBoundsException{
-        Coordinates coordinates = players.get(username);
-        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
-        players.put(username, new Coordinates(coordinates.x(), coordinates.y() - 1));
-        board[coordinates.x()][coordinates.y() - 1].setBackgroundColor(Color.GREEN);
+    public void movePlayerToDirection(PlayerType playerType, Direction direction){
+        switch (direction){
+            case UP:
+                moveUp(playerType);
+                break;
+            case DOWN:
+                moveDown(playerType);
+                break;
+            case LEFT:
+                moveLeft(playerType);
+                break;
+            case RIGHT:
+                moveRight(playerType);
+                break;
+        }
+    }
+    public void moveUp(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
+        Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
+        Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
+        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x(), coordinates.y() - 1), player);
     }
 
-    public void moveDown(String username) throws ArrayIndexOutOfBoundsException{
-        Coordinates coordinates = players.get(username);
-        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
-        players.put(username, new Coordinates(coordinates.x(), coordinates.y() + 1));
-        board[coordinates.x()][coordinates.y() + 1].setBackgroundColor(Color.GREEN);
+    public void moveDown(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
+        Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
+        Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
+        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x(), coordinates.y() + 1), player);
     }
 
-    public void moveLeft(String username) throws ArrayIndexOutOfBoundsException{
-        Coordinates coordinates = players.get(username);
-        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
-        players.put(username, new Coordinates(coordinates.x() - 1, coordinates.y()));
-        board[coordinates.x() - 1][coordinates.y()].setBackgroundColor(Color.GREEN);
+    public void moveLeft(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
+        Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
+        Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
+        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x()-1, coordinates.y()), player);
     }
 
-    public void moveRight(String username) throws ArrayIndexOutOfBoundsException{
-        Coordinates coordinates = players.get(username);
-        board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.WHITE);
-        players.put(username, new Coordinates(coordinates.x() + 1, coordinates.y()));
-        board[coordinates.x() + 1][coordinates.y()].setBackgroundColor(Color.GREEN);
+    public void moveRight(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
+        Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
+        Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
+        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x()+1, coordinates.y()), player);
     }
 
 
@@ -217,45 +207,35 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 //GEN-LAST:event_jButton1ActionPerformed
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jButton1KeyPressed
-        // TODO add your handling code here:
+        // TODO add your handling code here: REFACTORARE COME HA DETTO LUCA FACENDO SPARIRE I NUMERI E METTENDO COSTANTI TIPO ENUM
         System.out.println("Key pressed: "+evt.getKeyCode());
-        Coordinates coordinates = players.get("SELF");
         int keyCode = evt.getKeyCode();
-        if (keyCode != 87 && keyCode != 83 && keyCode != 65 && keyCode != 68){
+        if (keyCode != KeyEvent.VK_W && keyCode != KeyEvent.VK_S && keyCode != KeyEvent.VK_A && keyCode != KeyEvent.VK_D){
             return;
         }
-        try {
-            if (keyCode == 87) {
-                moveUp("SELF");
-            }
-            if (keyCode == 83) {
-                moveDown("SELF");
-            }
-            if (keyCode == 65) {
-                moveLeft("SELF");
-            }
-            if (keyCode == 68) {
-                moveRight("SELF");
-            }
-            RedisManager.getInstance().publish("game.move", ClientGameManager.getInstance().getServerId() + ":" + ClientGameManager.getInstance().getSelfPlayer() + ":" + coordinates.x() + "," + coordinates.y());
-        } catch (ArrayIndexOutOfBoundsException e){
-            System.out.println("[DEBUG] Out of bounds");
-            players.put("SELF", coordinates);
-            board[coordinates.x()][coordinates.y()].setBackgroundColor(Color.GREEN);
+        if (keyCode == KeyEvent.VK_W) {
+            moveUp(PlayerType.SELF);
         }
-
-
+        if (keyCode == KeyEvent.VK_S) {
+            moveDown(PlayerType.SELF);
+        }
+        if (keyCode == KeyEvent.VK_A) {
+            moveLeft(PlayerType.SELF);
+        }
+        if (keyCode == KeyEvent.VK_D  ) {
+            moveRight(PlayerType.SELF);
+        }
     }//GEN-LAST:event_jButton1KeyPressed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+    /*public static void main(String args[]) {
+        *//* Set the Nimbus look and feel *//*
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+        *//* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
+         *//*
         ClientGameManager.getInstance().setSelfPlayer(new Player("Test"));
         ClientGameManager.getInstance().setServerId("TEST");
         RedisManager.getInstance().publish("game.init", "TEST:Test:10,10");
@@ -291,13 +271,13 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         }
         //</editor-fold>
 
-        /* Create and display the form */
+        *//* Create and display the form *//*
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new MainGui(true).setVisible(true);
             }
         });
-    }
+    }*/
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

@@ -5,6 +5,7 @@ import it.ji.game.client.gui.MainGui;
 import it.ji.game.client.gui.WatingGui;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.PlayerType;
 
 import javax.swing.*;
 import java.util.Scanner;
@@ -21,7 +22,7 @@ public class Main {
         ClientGameManager.getInstance().setServerId(serverId);
         System.out.println("insert username: ");
         String username = scanner.nextLine();
-        ClientGameManager.getInstance().setSelfPlayer(new Player(username));
+        ClientGameManager.getInstance().addPlayer(new Player(username, PlayerType.SELF));
         startWaitingGui();
 
     }

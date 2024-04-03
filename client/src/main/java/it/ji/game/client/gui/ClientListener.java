@@ -9,6 +9,6 @@ public interface ClientListener {
     void gameStarted(String serverId);
 
     void gameEnded(String serverId);
-    void positionChanged(String username, Coordinates coordinates);
+    void positionChanged(String username, Direction direction );
 
 }
