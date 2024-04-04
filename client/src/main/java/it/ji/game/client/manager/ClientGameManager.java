@@ -28,7 +28,7 @@ public class ClientGameManager implements RedisMessageListener {
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
 
     private ClientGameManager() {
-        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start", "game.init","game.move.client");
+        RedisManager.getInstance().subscribe(this,"login.status.accepted", "game.start", "game.init","game.move.client","game.move.client.refused","game.move.client.accepted");
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
@@ -112,6 +112,32 @@ public class ClientGameManager implements RedisMessageListener {
                 .orElseThrow(() -> new IllegalArgumentException("Enemy player not found"));
     }
 
+    private void initPositions(RedisMessage message) {
+        System.out.println("[DEBUG] handling message in channel: <game.init>");
+        String channelMessage = message.message();
+        String[] split = channelMessage.split(":");
+        String initMessageServerId = split[0];
+        System.out.println("[DEBUG] initMessageServerId: [" + initMessageServerId+"]");
+        String initMessageUsername = split[1];
+        System.out.println("[DEBUG] initMessageUsername: [" + initMessageUsername+"]");
+        String initMessagePosition = split[2];
+        String[] splitCoordinates = initMessagePosition.split(",");
+        System.out.println("[DEBUG] splitCoordinates: [" + splitCoordinates[0] + "] and [" + splitCoordinates[1] + "]");
+        Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
+        if (!initMessageServerId.equals(serverId)){
+            System.out.println("[DEBUG] ServerId does not match");
+            return;
+        }
+        Player playerFromType = getPlayerFromType(PlayerType.SELF);
+        if (playerFromType.username().equals(initMessageUsername)) {
+            setLocalBoardCoordinates(xy, PlayerType.SELF);
+        } else {
+            setLocalBoardCoordinates(xy, PlayerType.ENEMY);
+        }
+        System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
+
+    }
+
     @Override
     public void onMessage(RedisMessage message) {
         if (message == null || message.message() == null || message.channel() == null){
@@ -164,13 +190,18 @@ public class ClientGameManager implements RedisMessageListener {
 
             initPositions(message);
         }
-        if (message.channel().equals("game.move.client")){
+        if (message.channel().equals("game.move.client.refused")) { //todo levare
+            System.out.println("[DEBUG] handling message in channel: <game.move.client.refused>");
+            System.out.println("[DEBUG] message: " + message.message());
+        }
+        if (message.channel().equals("game.move.client.accepted")){
             System.out.println("[DEBUG] handling message in channel: <game.move.client>");
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageUsername = split[1];
             String messagePosition = split[2];
             if (messageUsername.equals(getSelfPlayer().username())) {
+                updateLocalBoardByUsername(new Coordinates(Integer.parseInt(messagePosition.split(",")[0]), Integer.parseInt(messagePosition.split(",")[1])), getSelfPlayer());
                 System.out.println("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition);
                 return;
             }
@@ -186,32 +217,26 @@ public class ClientGameManager implements RedisMessageListener {
             }
         }
     }
-
-    private void initPositions(RedisMessage message) {
-        System.out.println("[DEBUG] handling message in channel: <game.init>");
-        String channelMessage = message.message();
-        String[] split = channelMessage.split(":");
-        String initMessageServerId = split[0];
-        System.out.println("[DEBUG] initMessageServerId: [" + initMessageServerId+"]");
-        String initMessageUsername = split[1];
-        System.out.println("[DEBUG] initMessageUsername: [" + initMessageUsername+"]");
-        String initMessagePosition = split[2];
-        String[] splitCoordinates = initMessagePosition.split(",");
-        System.out.println("[DEBUG] splitCoordinates: [" + splitCoordinates[0] + "] and [" + splitCoordinates[1] + "]");
-        Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
-        if (!initMessageServerId.equals(serverId)){
-            System.out.println("[DEBUG] ServerId does not match");
-            return;
+    public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
+        System.out.println("[DEBUG] updating local board for player: " + player.username() + " at position: " + coordinates);
+        Coordinates playerCoordinates = playerPositions.get(player);
+        if (player.username().equals(getSelfPlayer().username())) {
+            try {
+                setLocalBoardCoordinates(coordinates, PlayerType.SELF);
+            }catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage());
+                playerPositions.put(player, playerCoordinates);
+            }
+        } else if (player.username().equals(getEnemyPlayer().username())) {
+            try {
+                setLocalBoardCoordinates(coordinates, PlayerType.ENEMY);
+            }catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage());
+                playerPositions.put(player, playerCoordinates);
+            }
         }
-        Player playerFromType = getPlayerFromType(PlayerType.SELF);
-        if (playerFromType.username().equals(initMessageUsername)) {
-            setLocalBoardCoordinates(xy, PlayerType.SELF);
-        } else {
-            setLocalBoardCoordinates(xy, PlayerType.ENEMY);
-        }
-        System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
-
     }
+
     private void setLocalBoardCoordinates(Coordinates coordinates, PlayerType playerType) throws ArrayIndexOutOfBoundsException{
        Player player = playerPositions.keySet().stream().filter(p -> p.type() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
        Coordinates previousCoordinates = playerPositions.get(player);
@@ -224,33 +249,13 @@ public class ClientGameManager implements RedisMessageListener {
         if (previousCoordinates != null) {
             localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
         }
-        if (playerType == PlayerType.ENEMY) {
-            return;
-        }
-        RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.username() + ":" + coordinates.x() + "," + coordinates.y());
     }
 
     public void removeClientListener(ClientListener clientListener) {
         clientListeners.remove(clientListener);
     }
 
-    public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
-        System.out.println("[DEBUG] updating local board for player: " + player.username() + " at position: " + coordinates);
-        Coordinates playerCoordinates = playerPositions.get(player);
-            if (player.username().equals(getSelfPlayer().username())) {
-                try {
-                    setLocalBoardCoordinates(coordinates, PlayerType.SELF);
-                }catch (ArrayIndexOutOfBoundsException e) {
-                    System.out.println("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage());
-                   playerPositions.put(player, playerCoordinates);
-                }
-            } else if (player.username().equals(getEnemyPlayer().username())) {
-                try {
-                    setLocalBoardCoordinates(coordinates, PlayerType.ENEMY);
-                }catch (ArrayIndexOutOfBoundsException e) {
-                    System.out.println("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage());
-                    playerPositions.put(player, playerCoordinates);
-                }
-            }
-        }
+    public void requestToUpdatePosition(Coordinates coordinates, Player player) {
+        RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.username() + ":" + coordinates.x() + "," + coordinates.y());
     }
+}

@@ -96,25 +96,25 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         System.out.println("[DEBUG][EVENT] Moving up");
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
         Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
-        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x(), coordinates.y() - 1), player);
+        ClientGameManager.getInstance().requestToUpdatePosition(new Coordinates(coordinates.x(), coordinates.y() - 1), player);
     }
 
     public void moveDown(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
         Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
-        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x(), coordinates.y() + 1), player);
+        ClientGameManager.getInstance().requestToUpdatePosition(new Coordinates(coordinates.x(), coordinates.y() + 1), player);
     }
 
     public void moveLeft(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
         Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
-        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x()-1, coordinates.y()), player);
+        ClientGameManager.getInstance().requestToUpdatePosition(new Coordinates(coordinates.x()-1, coordinates.y()), player);
     }
 
     public void moveRight(PlayerType playerType) throws ArrayIndexOutOfBoundsException{
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
         Coordinates coordinates = ClientGameManager.getInstance().getPlayerPositions().get(player);
-        ClientGameManager.getInstance().updateLocalBoardByUsername(new Coordinates(coordinates.x()+1, coordinates.y()), player);
+        ClientGameManager.getInstance().requestToUpdatePosition(new Coordinates(coordinates.x()+1, coordinates.y()), player);
     }
 
 

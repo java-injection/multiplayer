@@ -17,6 +17,8 @@ public class ServerGameManager implements RedisMessageListener {
     private Integer[][] localBoard;
     private Player player1;
     private Player player2;
+    private Coordinates player1Coordinates;
+    private Coordinates player2Coordinates;
 
 
     private ServerGameManager() {
@@ -92,15 +94,26 @@ public class ServerGameManager implements RedisMessageListener {
     public void setInitialPositions() {
         Coordinates p1RandomInitCoords = getRandomCoordinates();
         Coordinates p2RandomInitCoords = getRandomCoordinates();
+
         while (p1RandomInitCoords.equals(p2RandomInitCoords)){
             p2RandomInitCoords = getRandomCoordinates();
         }
+        player1Coordinates = p1RandomInitCoords;
+        player2Coordinates = p2RandomInitCoords;
         localBoard[p1RandomInitCoords.x()][p1RandomInitCoords.y()] = 1;
         localBoard[p2RandomInitCoords.x()][p2RandomInitCoords.y()] = 2;
+
         RedisManager.getInstance().publish("game.init", serverId+":"+player1.username()+":"+p1RandomInitCoords.x()+","+p1RandomInitCoords.y());
         RedisManager.getInstance().publish("game.init", serverId+":"+player2.username()+":"+p2RandomInitCoords.x()+","+p2RandomInitCoords.y());
     }
-
+    public void setPlayerMovement(Player player, Coordinates coordinates){
+        if (player.equals(player1)) {
+            localBoard[coordinates.x()][coordinates.y()] = 1;
+        }
+        if (player.equals(player2)) {
+            localBoard[coordinates.x()][coordinates.y()] = 2;
+        }
+    }
 
     //todo spostare in utils
     public static Coordinates getRandomCoordinates(){
@@ -151,24 +164,38 @@ public class ServerGameManager implements RedisMessageListener {
             int x = Integer.parseInt(messageCoords[0]);
             int y = Integer.parseInt(messageCoords[1]);
             if (messageServerId.matches(serverId)){
+                if (localBoard[x][y] != 0){
+                    System.out.println("Cell already occupied");
+                    RedisManager.getInstance().publish("game.move.client.refused", serverId+":"+messageusername+":"+x+","+y);
+                    return;
+                }
                 if (messageusername.matches(player1.username())){
+                    localBoard[player1Coordinates.x()][player1Coordinates.y()] = 0;
                     localBoard[x][y] = 1;
+                    player1Coordinates = new Coordinates(x,y);
                 }else if (messageusername.matches(player2.username())){
+                    localBoard[player2Coordinates.x()][player2Coordinates.y()] = 0;
                     localBoard[x][y] = 2;
+                    player2Coordinates = new Coordinates(x,y);
                 }
                 System.out.println("Player "+messageusername+" moved to "+x+","+y);
-                RedisManager.getInstance().publish("game.move.client", serverId+":"+messageusername+":"+x+","+y);
+                RedisManager.getInstance().publish("game.move.client.accepted", serverId+":"+messageusername+":"+x+","+y);
             }
             printBoard();
         }
     }
     private void initBoard(){
         localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
+        for (Integer[] integers : localBoard) {
+            for (int j = 0; j < localBoard[0].length; j++) {
+                integers[j] = 0;
+            }
+        }
     }
     public void printBoard(){
 //todo: implement this method
-        for (int i = 0; i < 3; i++){
-            for (int j = 0; j < 3; j++){
+        for (int i = 0; i < Settings.getInstance().getHeight(); i++){
+            for (int j = 0; j < Settings.getInstance().getWitdh(); j++){
                 System.out.print(localBoard[i][j] + " ");
             }
             System.out.println();
