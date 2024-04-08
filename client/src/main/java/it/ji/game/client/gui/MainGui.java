@@ -127,7 +127,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
         Coordinates delta = new Coordinates(ClientGameManager.getInstance().getPlayerPositions().get(ClientGameManager.getInstance().getPlayerFromType(playerType)).x()-lastCoordinates.x(),
                 ClientGameManager.getInstance().getPlayerPositions().get(ClientGameManager.getInstance().getPlayerFromType(playerType)).y()-lastCoordinates.y());
         Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);
-        ClientGameManager.getInstance().requestToPlaceTurret(delta, player);
+        ClientGameManager.getInstance().requestToPlaceTurret(delta);
     }
 
     private Direction getDirectionFromDelta(Coordinates delta) {

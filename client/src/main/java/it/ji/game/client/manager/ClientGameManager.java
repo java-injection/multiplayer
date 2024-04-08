@@ -8,6 +8,8 @@ import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.client.gui.SingleCellPanel;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.objects.Items;
+import it.ji.game.utils.logic.objects.Turret;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
@@ -15,9 +17,8 @@ import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClientGameManager implements RedisMessageListener {
@@ -26,8 +27,10 @@ public class ClientGameManager implements RedisMessageListener {
     private SingleCellPanel[][] localBoard = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     private Map<Player, Coordinates> playerPositions = new HashMap<>();
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
+    private List<Items> playerItems = new LinkedList<>();
     private Coordinates lastCoordinates;
     private ClientGameManager() {
+
         RedisManager.getInstance().subscribe(this,
                 "login.status.accepted",
                 "game.start",
@@ -43,6 +46,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
+        playerItems.add(new Turret(selfPlayer, 5, 10, 5, 10, serverId));
     }
 
     public void addClientListener(ClientListener listener){
@@ -175,9 +179,7 @@ public class ClientGameManager implements RedisMessageListener {
             String messageUsername = split[1];
             if (messageServerId.equals(serverId) && messageUsername.equals(getSelfPlayer().username())) {
                 System.out.println("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId);
-//                synchronized (clientListeners) {
-                    clientListeners.forEach(listener -> listener.userAccepted(messageServerId, messageUsername));
-//                }
+                clientListeners.forEach(listener -> listener.userAccepted(messageServerId, messageUsername));
             }
         }
         if (message.channel().equals("game.start")) {
@@ -333,8 +335,15 @@ public class ClientGameManager implements RedisMessageListener {
         }
         return Direction.NONE;
     }
-    public void requestToPlaceTurret(Coordinates coordinates, Player player) {
+    public void requestToPlaceTurret(Coordinates coordinates) {
         System.out.println("[DEBUG] requesting to place turret at coordinates: " + coordinates);
-        RedisManager.getInstance().publish("game.turret.server", serverId + ":" + player.username() + ":" + coordinates.x() + "," + coordinates.y());
+        Optional<Items> items = playerItems.stream().filter(item -> item instanceof Turret).findFirst();
+        if (items.isEmpty()) {
+            System.out.println("[DEBUG] Turret not found");
+            return;
+        }
+        Turret turret = (Turret) items.get();
+        RedisManager.getInstance().publish("game.turret.server",
+                 turret.getInfoString()+":" + coordinates.x() + "," + coordinates.y());
     }
 }

@@ -5,6 +5,7 @@ import it.ji.game.utils.logging.Logger;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.logic.PlayerType;
+import it.ji.game.utils.logic.objects.Turret;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
@@ -68,7 +69,12 @@ public class ServerGameManager implements RedisMessageListener {
             );*/
 
             //create a waiting thread that listen for players to login through the redis publish/subscribe system
-            RedisManager.getInstance().subscribe(this,"login","game.move.server","game.turret.server");
+            RedisManager.getInstance().subscribe(this,
+                    "login",
+                    "game.move.server",
+                    "game.turret.server",
+                    "game.item"
+            );
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
 
             int elapsed = 0;
@@ -200,7 +206,11 @@ public class ServerGameManager implements RedisMessageListener {
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageusername = split[1];
-            String[] messageCoords = split[2].split(",");
+            String messageDuration = split[2];
+            String messageDamage   = split[3];
+            String messageRange    = split[4];
+            String messageCost     = split[5];
+            String[] messageCoords = split[6].split(",");
             int deltaX = Integer.parseInt(messageCoords[0]);
             int deltaY = Integer.parseInt(messageCoords[1]);
             if (messageServerId.matches(serverId)){
@@ -210,6 +220,7 @@ public class ServerGameManager implements RedisMessageListener {
                     RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                     return;
                 }
+                Turret turret = null;
                 if (messageusername.matches(player1.username())){
                     deltaPlusCurrentCoordinates = new Coordinates(player1Coordinates.x()+deltaX, player1Coordinates.y()+deltaY);
                     if(isOutOfBounds(deltaPlusCurrentCoordinates)){
@@ -222,6 +233,7 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
+                     turret = new Turret(player1, Integer.parseInt(messageDuration), Integer.parseInt(messageDamage), Integer.parseInt(messageRange), Integer.parseInt(messageCost), serverId);
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
                 }else if (messageusername.matches(player2.username())){
                     deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
@@ -235,13 +247,26 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
+                     turret = new Turret(player2, Integer.parseInt(messageDuration), Integer.parseInt(messageDamage), Integer.parseInt(messageRange), Integer.parseInt(messageCost), serverId);
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_2;
                 }
+                startTurretEvent(turret);
                 System.out.println("Player "+messageusername+" placed turret at "+deltaX+","+deltaY);
                 RedisManager.getInstance().publish("game.turret.client.accepted", serverId+":"+messageusername+":"+deltaPlusCurrentCoordinates.x()+","+deltaPlusCurrentCoordinates.y());
             }
             printBoard();
         }
+    }
+
+    private void startTurretEvent(Turret turret) {
+        executorService.submit(() -> {
+            try {
+                turret.use();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public boolean isOutOfBounds(Coordinates coordinates){
