@@ -217,10 +217,20 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
+                    if (isCellOccupied(deltaPlusCurrentCoordinates)){
+                        System.out.println("Cell already occupied");
+                        RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
+                        return;
+                    }
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
                 }else if (messageusername.matches(player2.username())){
                     if(isOutOfBounds(deltaPlusCurrentCoordinates)){
                         System.out.println("Invalid coordinates");
+                        RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
+                        return;
+                    }
+                    if (isCellOccupied(deltaPlusCurrentCoordinates)){
+                        System.out.println("Cell already occupied");
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
