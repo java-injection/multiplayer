@@ -224,6 +224,7 @@ public class ServerGameManager implements RedisMessageListener {
                     }
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
                 }else if (messageusername.matches(player2.username())){
+                    deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
                     if(isOutOfBounds(deltaPlusCurrentCoordinates)){
                         System.out.println("Invalid coordinates");
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
@@ -234,7 +235,6 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
-                    deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_2;
                 }
                 System.out.println("Player "+messageusername+" placed turret at "+deltaX+","+deltaY);
