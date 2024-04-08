@@ -1,6 +1,7 @@
 package it.ji.game.server.manager;
 
 import it.ji.game.server.Utils;
+import it.ji.game.utils.logging.Logger;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.logic.PlayerType;
@@ -10,7 +11,12 @@ import it.ji.game.utils.redis.RedisMessageListener;
 import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class ServerGameManager implements RedisMessageListener {
+    public final static int TURRET_PLAYER_1 = 3;
+    public final static int TURRET_PLAYER_2 = 4;
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
     private String serverId;
@@ -19,6 +25,7 @@ public class ServerGameManager implements RedisMessageListener {
     private Player player2;
     private Coordinates player1Coordinates;
     private Coordinates player2Coordinates;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
     private ServerGameManager() {
@@ -61,7 +68,7 @@ public class ServerGameManager implements RedisMessageListener {
             );*/
 
             //create a waiting thread that listen for players to login through the redis publish/subscribe system
-            RedisManager.getInstance().subscribe(this,"login","game.move.server");
+            RedisManager.getInstance().subscribe(this,"login","game.move.server","game.turret.server");
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
 
             int elapsed = 0;
@@ -163,6 +170,11 @@ public class ServerGameManager implements RedisMessageListener {
             String[] messageCoords = split[2].split(",");
             int x = Integer.parseInt(messageCoords[0]);
             int y = Integer.parseInt(messageCoords[1]);
+            if (x < 0 || x >= Settings.getInstance().getHeight() || y < 0 || y >= Settings.getInstance().getWitdh()){
+                System.out.println("Invalid coordinates");
+                RedisManager.getInstance().publish("game.move.client.refused", serverId+":"+messageusername+":"+x+","+y);
+                return;
+            }
             if (messageServerId.matches(serverId)){
                 if (localBoard[x][y] != 0){
                     System.out.println("Cell already occupied");
@@ -183,6 +195,50 @@ public class ServerGameManager implements RedisMessageListener {
             }
             printBoard();
         }
+        if (message.channel().equals("game.turret.server")){
+            System.out.println("Received turret: "+message.message());
+            String[] split = message.message().split(":");
+            String messageServerId = split[0];
+            String messageusername = split[1];
+            String[] messageCoords = split[2].split(",");
+            int deltaX = Integer.parseInt(messageCoords[0]);
+            int deltaY = Integer.parseInt(messageCoords[1]);
+            if (messageServerId.matches(serverId)){
+                Coordinates deltaPlusCurrentCoordinates = new Coordinates(0, 0);
+                if (localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] != 0){
+                    System.out.println("Cell already occupied");
+                    RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
+                    return;
+                }
+                if (messageusername.matches(player1.username())){
+                    deltaPlusCurrentCoordinates = new Coordinates(player1Coordinates.x()+deltaX, player1Coordinates.y()+deltaY);
+                    if(isOutOfBounds(deltaPlusCurrentCoordinates)){
+                        System.out.println("Invalid coordinates");
+                        RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
+                        return;
+                    }
+                    localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
+                }else if (messageusername.matches(player2.username())){
+                    if(isOutOfBounds(deltaPlusCurrentCoordinates)){
+                        System.out.println("Invalid coordinates");
+                        RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
+                        return;
+                    }
+                    deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
+                    localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_2;
+                }
+                System.out.println("Player "+messageusername+" placed turret at "+deltaX+","+deltaY);
+                RedisManager.getInstance().publish("game.turret.client.accepted", serverId+":"+messageusername+":"+deltaPlusCurrentCoordinates.x()+","+deltaPlusCurrentCoordinates.y());
+            }
+            printBoard();
+        }
+    }
+
+    public boolean isOutOfBounds(Coordinates coordinates){
+        return coordinates.x() < 0 || coordinates.x() >= Settings.getInstance().getHeight() || coordinates.y() < 0 || coordinates.y() >= Settings.getInstance().getWitdh();
+    }
+    public boolean isCellOccupied(Coordinates coordinates){
+        return localBoard[coordinates.x()][coordinates.y()] != 0;
     }
     private void initBoard(){
         localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];

@@ -7,6 +7,8 @@ package it.ji.game.client.gui;
 import it.ji.game.client.Main;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
+import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.PlayerType;
 
 /**
  *
@@ -138,6 +140,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void positionChanged(String username, Coordinates direction ) {
+
+    }
+
+    @Override
+    public void turretPlaced(Player player, Coordinates xy) {
 
     }
     // End of variables declaration//GEN-END:variables
