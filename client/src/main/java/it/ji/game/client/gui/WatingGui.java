@@ -8,7 +8,6 @@ import it.ji.game.client.Main;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
-import it.ji.game.utils.logic.PlayerType;
 
 /**
  *
@@ -22,7 +21,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public WatingGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
-        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().username());
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().getUsername());
         this.setAlwaysOnTop(true);
 
 

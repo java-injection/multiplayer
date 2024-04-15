@@ -1,11 +1,13 @@
 package it.ji.game.server.manager;
 
 import it.ji.game.server.Utils;
-import it.ji.game.utils.logging.Logger;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.utils.logic.objects.Turret;
+import it.ji.game.utils.logic.objects.TurretListener;
+import it.ji.game.utils.logic.objects.TurretManager;
+import it.ji.game.utils.logic.objects.TurretTypes;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
@@ -15,7 +17,10 @@ import it.ji.game.utils.settings.Status;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ServerGameManager implements RedisMessageListener {
+public class ServerGameManager implements RedisMessageListener, TurretListener {
+    public final static int EMPTY = 0;
+    public final static int PLAYER_1 = 1;
+    public final static int PLAYER_2 = 2;
     public final static int TURRET_PLAYER_1 = 3;
     public final static int TURRET_PLAYER_2 = 4;
     private static ServerGameManager instance = null;
@@ -34,6 +39,7 @@ public class ServerGameManager implements RedisMessageListener {
 
         System.out.println("[DEBUG] Height: " + Settings.getInstance().getHeight()+ " Width: " + Settings.getInstance().getWitdh() );
         localBoard = new Integer[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
+        TurretManager.getInstance().addTurretListener(this);
     }
 
     public static ServerGameManager getInstance() {
@@ -113,18 +119,18 @@ public class ServerGameManager implements RedisMessageListener {
         }
         player1Coordinates = p1RandomInitCoords;
         player2Coordinates = p2RandomInitCoords;
-        localBoard[p1RandomInitCoords.x()][p1RandomInitCoords.y()] = 1;
-        localBoard[p2RandomInitCoords.x()][p2RandomInitCoords.y()] = 2;
+        localBoard[p1RandomInitCoords.x()][p1RandomInitCoords.y()] = PLAYER_1;
+        localBoard[p2RandomInitCoords.x()][p2RandomInitCoords.y()] = PLAYER_2;
 
-        RedisManager.getInstance().publish("game.init", serverId+":"+player1.username()+":"+p1RandomInitCoords.x()+","+p1RandomInitCoords.y());
-        RedisManager.getInstance().publish("game.init", serverId+":"+player2.username()+":"+p2RandomInitCoords.x()+","+p2RandomInitCoords.y());
+        RedisManager.getInstance().publish("game.init", serverId+":"+player1.getUsername()+":"+p1RandomInitCoords.x()+","+p1RandomInitCoords.y());
+        RedisManager.getInstance().publish("game.init", serverId+":"+player2.getUsername()+":"+p2RandomInitCoords.x()+","+p2RandomInitCoords.y());
     }
     public void setPlayerMovement(Player player, Coordinates coordinates){
         if (player.equals(player1)) {
-            localBoard[coordinates.x()][coordinates.y()] = 1;
+            localBoard[coordinates.x()][coordinates.y()] = PLAYER_1;
         }
         if (player.equals(player2)) {
-            localBoard[coordinates.x()][coordinates.y()] = 2;
+            localBoard[coordinates.x()][coordinates.y()] = PLAYER_2;
         }
     }
 
@@ -141,7 +147,7 @@ public class ServerGameManager implements RedisMessageListener {
     public void startGame(){
         initBoard();
         System.out.println("Game started");
-        RedisManager.getInstance().publish("game.start", serverId+":"+player1.username()+":"+player2.username());
+        RedisManager.getInstance().publish("game.start", serverId+":"+player1.getUsername()+":"+player2.getUsername());
         setInitialPositions();
         printBoard();
     }
@@ -152,12 +158,12 @@ public class ServerGameManager implements RedisMessageListener {
         if (message.channel().equals("login")){
             if (player1 == null){
                 player1 = new Player(message.message().split(":")[1].trim(), PlayerType.SERVER);
-                System.out.println("Player 1 logged in: "+player1.username());
-                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.username());
+                System.out.println("Player 1 logged in: "+player1.getUsername());
+                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player1.getUsername());
             }else if (player2 == null){
                 player2 = new Player(message.message().split(":")[1].trim(), PlayerType.SERVER);
-                System.out.println("Player 2 logged in: "+player2.username());
-                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player2.username());
+                System.out.println("Player 2 logged in: "+player2.getUsername());
+                RedisManager.getInstance().publish("login.status.accepted", serverId+":"+player2.getUsername());
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
@@ -187,13 +193,13 @@ public class ServerGameManager implements RedisMessageListener {
                     RedisManager.getInstance().publish("game.move.client.refused", serverId+":"+messageusername+":"+x+","+y);
                     return;
                 }
-                if (messageusername.matches(player1.username())){
+                if (messageusername.matches(player1.getUsername())){
                     localBoard[player1Coordinates.x()][player1Coordinates.y()] = 0;
-                    localBoard[x][y] = 1;
+                    localBoard[x][y] =PLAYER_1;
                     player1Coordinates = new Coordinates(x,y);
-                }else if (messageusername.matches(player2.username())){
+                }else if (messageusername.matches(player2.getUsername())){
                     localBoard[player2Coordinates.x()][player2Coordinates.y()] = 0;
-                    localBoard[x][y] = 2;
+                    localBoard[x][y] = PLAYER_2;
                     player2Coordinates = new Coordinates(x,y);
                 }
                 System.out.println("Player "+messageusername+" moved to "+x+","+y);
@@ -221,7 +227,7 @@ public class ServerGameManager implements RedisMessageListener {
                     return;
                 }
                 Turret turret = null;
-                if (messageusername.matches(player1.username())){
+                if (messageusername.matches(player1.getUsername())){
                     deltaPlusCurrentCoordinates = new Coordinates(player1Coordinates.x()+deltaX, player1Coordinates.y()+deltaY);
                     if(isOutOfBounds(deltaPlusCurrentCoordinates)){
                         System.out.println("Invalid coordinates");
@@ -233,9 +239,9 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
-                     turret = new Turret(player1, Integer.parseInt(messageDuration), Integer.parseInt(messageDamage), Integer.parseInt(messageRange), Integer.parseInt(messageCost), serverId);
+                    turret = new Turret(player1, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET");
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
-                }else if (messageusername.matches(player2.username())){
+                }else if (messageusername.matches(player2.getUsername())){
                     deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
                     if(isOutOfBounds(deltaPlusCurrentCoordinates)){
                         System.out.println("Invalid coordinates");
@@ -247,7 +253,7 @@ public class ServerGameManager implements RedisMessageListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
-                     turret = new Turret(player2, Integer.parseInt(messageDuration), Integer.parseInt(messageDamage), Integer.parseInt(messageRange), Integer.parseInt(messageCost), serverId);
+                     turret = new Turret(player2, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET");
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_2;
                 }
                 startTurretEvent(turret);
@@ -263,7 +269,8 @@ public class ServerGameManager implements RedisMessageListener {
             try {
                 turret.use();
 
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -291,5 +298,35 @@ public class ServerGameManager implements RedisMessageListener {
             }
             System.out.println();
         }
+    }
+
+    @Override
+    public void onBulletMoved(int x, int y, int damage) {
+        System.out.println("Bullet moved to: "+x+","+y+" with damage: "+damage);
+        int cell = localBoard[x][y];
+        if (cell == PLAYER_1 || cell == PLAYER_2){
+            System.out.println("Player hit");
+            if (cell == PLAYER_1){
+                player1.hit(damage);
+                if (player1.isDead()){
+                    System.out.println("Player 1 dead");
+                    RedisManager.getInstance().publish("game.end", serverId+":"+player2.getUsername());
+                    shutDownServer();
+                }
+            }else if (cell == PLAYER_2){
+                player2.hit(damage);
+                if (player2.isDead()){
+                    System.out.println("Player 2 dead");
+                    RedisManager.getInstance().publish("game.end", serverId+":"+player1.getUsername());
+                    shutDownServer();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onBulletRemoved(int x, int y) {
+        System.out.println("Bullet removed from: "+x+","+y);
+        localBoard[x][y] = 0;
     }
 }

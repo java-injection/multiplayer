@@ -46,7 +46,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
-        playerItems.add(new Turret(selfPlayer, 5, 10, 5, 10, serverId));
+        /*playerItems.add(new Turret(selfPlayer,  serverId));*/
     }
 
     public void addClientListener(ClientListener listener){
@@ -97,13 +97,13 @@ public class ClientGameManager implements RedisMessageListener {
                 serverId !=  null &&
                 !serverId.isBlank() &&
                 !serverId.isEmpty() &&
-                playerPositions.keySet().stream().allMatch(player -> player.username() != null && !player.username().isBlank() && !player.username().isEmpty());
+                playerPositions.keySet().stream().allMatch(player -> player.getUsername() != null && !player.getUsername().isBlank() && !player.getUsername().isEmpty());
     }
     public void startClient() throws ServerNotFoundException {
         if (isServerWaiting(serverId)) {
 
             playerPositions.keySet().stream().filter(player -> player.type()== PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
-                RedisManager.getInstance().publish("login", serverId + ":" + player.username());
+                RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
             }, () -> {
                 throw new IllegalArgumentException("Server is not waiting for players");
             });
@@ -148,7 +148,7 @@ public class ClientGameManager implements RedisMessageListener {
             return;
         }
         Player playerFromType = getPlayerFromType(PlayerType.SELF);
-        if (playerFromType.username().equals(initMessageUsername)) {
+        if (playerFromType.getUsername().equals(initMessageUsername)) {
             setLocalBoardCoordinates(xy, PlayerType.SELF);
         } else {
             setLocalBoardCoordinates(xy, PlayerType.ENEMY);
@@ -177,7 +177,7 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]");
             String messageServerId = split[0];
             String messageUsername = split[1];
-            if (messageServerId.equals(serverId) && messageUsername.equals(getSelfPlayer().username())) {
+            if (messageServerId.equals(serverId) && messageUsername.equals(getSelfPlayer().getUsername())) {
                 System.out.println("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId);
                 clientListeners.forEach(listener -> listener.userAccepted(messageServerId, messageUsername));
             }
@@ -193,9 +193,9 @@ public class ClientGameManager implements RedisMessageListener {
                 System.out.println("[DEBUG] Server started game for serverId: " + serverId);
 
                 playerPositions.entrySet().stream().findFirst().ifPresent((entry) -> {
-                    if (entry.getKey().username().equals(messagePlayer1)) {
+                    if (entry.getKey().getUsername().equals(messagePlayer1)) {
                         playerPositions.put(new Player(messagePlayer2, PlayerType.ENEMY), null);
-                    } else if (entry.getKey().username().equals(messagePlayer2)) {
+                    } else if (entry.getKey().getUsername().equals(messagePlayer2)) {
                         playerPositions.put(new Player(messagePlayer1, PlayerType.ENEMY), null);
                     }
                 });
@@ -221,7 +221,7 @@ public class ClientGameManager implements RedisMessageListener {
             String messageServerId = split[0];
             String messageUsername = split[1];
             String messagePosition = split[2];
-            if (messageUsername.equals(getSelfPlayer().username())) {
+            if (messageUsername.equals(getSelfPlayer().getUsername())) {
 
                 updateLocalBoardByUsername(new Coordinates(Integer.parseInt(messagePosition.split(",")[0]), Integer.parseInt(messagePosition.split(",")[1])), getSelfPlayer());
                 System.out.println("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition);
@@ -256,7 +256,7 @@ public class ClientGameManager implements RedisMessageListener {
             }
             System.out.println("[DEBUG] Server placed turret for player: " + messageUsername + " at position: " + xy);
             //get the player from the username
-            if (messageUsername.matches(getSelfPlayer().username())) {
+            if (messageUsername.matches(getSelfPlayer().getUsername())) {
                 localBoard[xy.x()][xy.y()].setBackground(Color.BLUE);
                 clientListeners.forEach(listener -> listener.turretPlaced(getSelfPlayer(), xy));
             } else {
@@ -267,16 +267,16 @@ public class ClientGameManager implements RedisMessageListener {
         }
     }
     public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
-        System.out.println("[DEBUG] updating local board for player: " + player.username() + " at position: " + coordinates);
+        System.out.println("[DEBUG] updating local board for player: " + player.getUsername() + " at position: " + coordinates);
         Coordinates playerCoordinates = playerPositions.get(player);
-        if (player.username().equals(getSelfPlayer().username())) {
+        if (player.getUsername().equals(getSelfPlayer().getUsername())) {
             try {
                 setLocalBoardCoordinates(coordinates, PlayerType.SELF);
             }catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage());
                 playerPositions.put(player, playerCoordinates);
             }
-        } else if (player.username().equals(getEnemyPlayer().username())) {
+        } else if (player.getUsername().equals(getEnemyPlayer().getUsername())) {
             try {
                 setLocalBoardCoordinates(coordinates, PlayerType.ENEMY);
             }catch (ArrayIndexOutOfBoundsException e) {
@@ -311,7 +311,7 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] Coordinates out of bounds");
             return;
         }
-        RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.username() + ":" + coordinates.x() + "," + coordinates.y());
+        RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.getUsername() + ":" + coordinates.x() + "," + coordinates.y());
     }
 
     private Direction getDirectionFromCoordinates(Coordinates coordinates) {

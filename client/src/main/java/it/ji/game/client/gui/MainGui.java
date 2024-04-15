@@ -8,10 +8,8 @@ import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.logic.PlayerType;
-import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.settings.Settings;
 
-import java.awt.*;
 import java.awt.event.KeyEvent;
 
 /**
@@ -24,7 +22,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
     public MainGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
-        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().username());
+        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().getUsername());
         this.setBounds(0, 0, 800, 800);
         ClientGameManager.getInstance().setLocalBoard(initBoard());
         this.setLocationRelativeTo(null);
@@ -81,7 +79,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
     public void positionChanged(String username, Coordinates coordinates) {
         System.out.println("[DEBUG][EVENT] Position changed: "+username+" to "+coordinates);
         Player selfPlayer = ClientGameManager.getInstance().getPlayerFromType(PlayerType.SELF);
-        if (username.equals(selfPlayer.username())){
+        if (username.equals(selfPlayer.getUsername())){
             movePlayerToDirection(PlayerType.SELF, coordinates);
         }else {
             movePlayerToDirection(PlayerType.ENEMY, coordinates);
