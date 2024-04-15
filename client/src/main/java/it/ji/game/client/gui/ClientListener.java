@@ -13,4 +13,7 @@ public interface ClientListener {
     void positionChanged(String username, Coordinates coordinates );
 
     void turretPlaced(Player player, Coordinates xy);
+
+    void bulletMoved(Coordinates xy);
+
 }

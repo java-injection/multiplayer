@@ -25,4 +25,8 @@ public class Player {
     public boolean isDead() {
         return HP <= 0;
     }
+
+    public PlayerType getType() {
+        return type;
+    }
 }

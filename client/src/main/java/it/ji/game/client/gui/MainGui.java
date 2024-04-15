@@ -91,6 +91,11 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     }
 
+    @Override
+    public void bulletMoved(Coordinates xy) {
+
+    }
+
     public void movePlayerToDirection(PlayerType playerType, Coordinates direction){
            System.out.println("[DEBUG][EVENT] Moving player to direction: "+direction);
             Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);

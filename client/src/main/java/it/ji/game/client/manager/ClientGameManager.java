@@ -28,6 +28,7 @@ public class ClientGameManager implements RedisMessageListener {
     private Map<Player, Coordinates> playerPositions = new HashMap<>();
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
     private List<Items> playerItems = new LinkedList<>();
+    private Player selfPlayer;
     private Coordinates lastCoordinates;
     private ClientGameManager() {
 
@@ -42,10 +43,12 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.turret.client.refused",
                 "game.turret.client.accepted",
                 "game.turret.accepted",
-                "game.turret.declined");
+                "game.turret.declined",
+                "game.hit");
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
+        this.selfPlayer = selfPlayer;
         /*playerItems.add(new Turret(selfPlayer,  serverId));*/
     }
 
@@ -66,7 +69,7 @@ public class ClientGameManager implements RedisMessageListener {
         return playerPositions
                 .keySet()
                 .stream()
-                .filter(player -> player.type() == type)
+                .filter(player -> player.getType() == type)
                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
     }
     public void setPlayerPositions(Map<Player, Coordinates> playerPositions) {
@@ -102,7 +105,7 @@ public class ClientGameManager implements RedisMessageListener {
     public void startClient() throws ServerNotFoundException {
         if (isServerWaiting(serverId)) {
 
-            playerPositions.keySet().stream().filter(player -> player.type()== PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
+            playerPositions.keySet().stream().filter(player -> player.getType()== PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
                 RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
             }, () -> {
                 throw new IllegalArgumentException("Server is not waiting for players");
@@ -120,13 +123,13 @@ public class ClientGameManager implements RedisMessageListener {
 
     public Player getSelfPlayer() {
         return playerPositions.keySet().stream()
-                .filter(player -> player.type() == PlayerType.SELF)
+                .filter(player -> player.getType() == PlayerType.SELF)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Self player not found"));
     }
     public Player getEnemyPlayer() {
         return playerPositions.keySet().stream()
-                .filter(player -> player.type() == PlayerType.ENEMY)
+                .filter(player -> player.getType() == PlayerType.ENEMY)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Enemy player not found"));
     }
@@ -263,7 +266,37 @@ public class ClientGameManager implements RedisMessageListener {
                 localBoard[xy.x()][xy.y()].setBackground(Color.BLACK);
                 clientListeners.forEach(listener -> listener.turretPlaced(getEnemyPlayer(), xy));
             }
-
+        }
+        if (message.channel().equals("game.hit")) {
+            System.out.println("[DEBUG] handling message in channel: <game.hit>");
+            String[] split = message.message().split(":");
+            String messageServerId = split[0];
+            String messageDamage = split[1];
+            String messageUsername = split[2];
+            if (!messageServerId.equals(serverId)){
+                System.out.println("[DEBUG] ServerId does not match");
+                return;
+            }
+            System.out.println("[DEBUG] Server hit player: " + messageUsername);
+            if (messageUsername.equals(getSelfPlayer().getUsername())) {
+                getSelfPlayer().hit(Integer.parseInt(messageDamage));
+            } else {
+                getEnemyPlayer().hit(Integer.parseInt(messageDamage));
+            }
+        }
+        if (message.channel().equals("game.bullet")){
+            String message1 = message.message();
+            String[] split = message1.split(":");
+            String messageServerId = split[0];
+            String messageCoords = split[1];
+            if (!messageServerId.equals(serverId)){
+                System.out.println("[DEBUG] ServerId does not match");
+                return;
+            }
+            String[] splitCoordinates = messageCoords.split(",");
+            Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
+            System.out.println("[DEBUG] Server moved bullet to position: " + xy);
+            localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
         }
     }
     public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
@@ -287,7 +320,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     private void setLocalBoardCoordinates(Coordinates coordinates, PlayerType playerType) throws ArrayIndexOutOfBoundsException{
-       Player player = playerPositions.keySet().stream().filter(p -> p.type() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
+       Player player = playerPositions.keySet().stream().filter(p -> p.getType() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
        Coordinates previousCoordinates = playerPositions.get(player);
         if (playerType == PlayerType.SELF) {
             localBoard[coordinates.x()][coordinates.y()].setBackground(Color.GREEN);
@@ -337,13 +370,13 @@ public class ClientGameManager implements RedisMessageListener {
     }
     public void requestToPlaceTurret(Coordinates coordinates) {
         System.out.println("[DEBUG] requesting to place turret at coordinates: " + coordinates);
-        Optional<Items> items = playerItems.stream().filter(item -> item instanceof Turret).findFirst();
+        //todo implementare il controllo per vedere se il giocatore ha già un turret
+        /*Optional<Items> items = playerItems.stream().filter(item -> item instanceof Turret).findFirst();
         if (items.isEmpty()) {
             System.out.println("[DEBUG] Turret not found");
             return;
-        }
-        Turret turret = (Turret) items.get();
+        }*/
         RedisManager.getInstance().publish("game.turret.server",
-                 turret.getInfoString()+":" + coordinates.x() + "," + coordinates.y());
+                 serverId+":"+selfPlayer.getUsername()+":"+coordinates.x() + "," + coordinates.y());
     }
 }

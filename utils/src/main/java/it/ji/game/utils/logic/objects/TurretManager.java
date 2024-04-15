@@ -1,10 +1,11 @@
 package it.ji.game.utils.logic.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class TurretManager {
     private static TurretManager instance = null;
-    private List<TurretListener> turretListeners;
+    private List<TurretListener> turretListeners = new LinkedList<>();
     private TurretManager() {
     }
 

@@ -146,5 +146,10 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public void turretPlaced(Player player, Coordinates xy) {
 
     }
+
+    @Override
+    public void bulletMoved(Coordinates xy) {
+
+    }
     // End of variables declaration//GEN-END:variables
 }

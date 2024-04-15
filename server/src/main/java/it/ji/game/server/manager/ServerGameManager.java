@@ -23,6 +23,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     public final static int PLAYER_2 = 2;
     public final static int TURRET_PLAYER_1 = 3;
     public final static int TURRET_PLAYER_2 = 4;
+    private static final int PROJECTILE = 5;
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
     private String serverId;
@@ -212,11 +213,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageusername = split[1];
-            String messageDuration = split[2];
-            String messageDamage   = split[3];
-            String messageRange    = split[4];
-            String messageCost     = split[5];
-            String[] messageCoords = split[6].split(",");
+            String[] messageCoords = split[2].split(",");
             int deltaX = Integer.parseInt(messageCoords[0]);
             int deltaY = Integer.parseInt(messageCoords[1]);
             if (messageServerId.matches(serverId)){
@@ -239,7 +236,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
-                    turret = new Turret(player1, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET");
+                    turret = new Turret(player1, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET", deltaPlusCurrentCoordinates, 1);
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_1;
                 }else if (messageusername.matches(player2.getUsername())){
                     deltaPlusCurrentCoordinates = new Coordinates(player2Coordinates.x()+deltaX, player2Coordinates.y()+deltaY);
@@ -253,7 +250,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                         RedisManager.getInstance().publish("game.turret.client.refused", serverId+":"+messageusername+":"+deltaX+","+deltaY);
                         return;
                     }
-                     turret = new Turret(player2, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET");
+                     turret = new Turret(player2, serverId, TurretTypes.BASIC_TURRET, "BASIC_TURRET", deltaPlusCurrentCoordinates, 1);
                     localBoard[deltaPlusCurrentCoordinates.x()][deltaPlusCurrentCoordinates.y()] = TURRET_PLAYER_2;
                 }
                 startTurretEvent(turret);
@@ -268,7 +265,6 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
         executorService.submit(() -> {
             try {
                 turret.use();
-
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -308,6 +304,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             System.out.println("Player hit");
             if (cell == PLAYER_1){
                 player1.hit(damage);
+                RedisManager.getInstance().publish("game.hit", serverId+damage+":"+player1.getUsername());
                 if (player1.isDead()){
                     System.out.println("Player 1 dead");
                     RedisManager.getInstance().publish("game.end", serverId+":"+player2.getUsername());
@@ -315,13 +312,25 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                 }
             }else if (cell == PLAYER_2){
                 player2.hit(damage);
+                RedisManager.getInstance().publish("game.hit", serverId+damage+":"+player2.getUsername());
                 if (player2.isDead()){
                     System.out.println("Player 2 dead");
                     RedisManager.getInstance().publish("game.end", serverId+":"+player1.getUsername());
                     shutDownServer();
                 }
             }
+        }else if (cell !=0){
+            System.out.println("Turret hit");
+            if (cell == TURRET_PLAYER_1){
+                localBoard[x][y] = 0;
+            }else if (cell == TURRET_PLAYER_2){
+                localBoard[x][y] = 0;
+            }
+        } else {
+            localBoard[x][y] = PROJECTILE;
+            RedisManager.getInstance().publish("game.projectile", serverId+":"+x+","+y);
         }
+
     }
 
     @Override
