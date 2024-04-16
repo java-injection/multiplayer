@@ -44,6 +44,8 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.turret.client.accepted",
                 "game.turret.accepted",
                 "game.turret.declined",
+                "game.bullet.set",
+                "game.bullet.remove",
                 "game.hit");
     }
     public void addPlayer(Player selfPlayer) {
@@ -284,7 +286,7 @@ public class ClientGameManager implements RedisMessageListener {
                 getEnemyPlayer().hit(Integer.parseInt(messageDamage));
             }
         }
-        if (message.channel().equals("game.bullet")){
+        if (message.channel().equals("game.bullet.set")){
             String message1 = message.message();
             String[] split = message1.split(":");
             String messageServerId = split[0];
@@ -297,6 +299,20 @@ public class ClientGameManager implements RedisMessageListener {
             Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
             System.out.println("[DEBUG] Server moved bullet to position: " + xy);
             localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
+        }
+        if (message.channel().equals("game.bullet.remove")){
+            String message1 = message.message();
+            String[] split = message1.split(":");
+            String messageServerId = split[0];
+            String messageCoords = split[1];
+            if (!messageServerId.equals(serverId)){
+                System.out.println("[DEBUG] ServerId does not match");
+                return;
+            }
+            String[] splitCoordinates = messageCoords.split(",");
+            Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
+            System.out.println("[DEBUG] Server removed bullet from position: " + xy);
+            localBoard[xy.x()][xy.y()].setBackground(Color.WHITE);
         }
     }
     public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {

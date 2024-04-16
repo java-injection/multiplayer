@@ -14,8 +14,9 @@ public enum TurretTypes {
 
                 for (int i = 0; i < 30; i++) {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(10000);
                         try {
+                            TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
                             bulletUP = Coordinates.up(bulletUP);
                             TurretManager.getInstance().notifyBulletMoved(bulletUP.x(), bulletUP.y(), 10);
 
@@ -23,18 +24,21 @@ public enum TurretTypes {
                             TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
                         }
                         try {
+                            TurretManager.getInstance().notifyBulletRemoved(bulletDOWN.x(), bulletDOWN.y());
                             bulletDOWN = Coordinates.down(bulletDOWN);
                             TurretManager.getInstance().notifyBulletMoved(bulletUP.x(), bulletUP.y(), 1);
                         } catch (InvalidCoordinatesException e) {
                             TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
                         }
                         try {
+                            TurretManager.getInstance().notifyBulletRemoved(bulletLEFT.x(), bulletLEFT.y());
                             bulletLEFT = Coordinates.left(bulletLEFT);
                             TurretManager.getInstance().notifyBulletMoved(bulletUP.x(), bulletUP.y(), 1);
                         } catch (InvalidCoordinatesException e) {
                             TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
                         }
                         try {
+                            TurretManager.getInstance().notifyBulletRemoved(bulletRIGHT.x(), bulletRIGHT.y());
                             bulletRIGHT = Coordinates.right(bulletRIGHT);
                             TurretManager.getInstance().notifyBulletMoved(bulletUP.x(), bulletUP.y(), 1);
                         } catch (InvalidCoordinatesException e) {

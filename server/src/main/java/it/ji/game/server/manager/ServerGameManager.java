@@ -328,7 +328,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             }
         } else {
             localBoard[x][y] = PROJECTILE;
-            RedisManager.getInstance().publish("game.projectile", serverId+":"+x+","+y);
+            RedisManager.getInstance().publish("game.bullet.set", serverId+":"+x+","+y);
         }
 
     }
@@ -337,5 +337,6 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     public void onBulletRemoved(int x, int y) {
         System.out.println("Bullet removed from: "+x+","+y);
         localBoard[x][y] = 0;
+        RedisManager.getInstance().publish("game.bullet.remove", serverId+":"+x+","+y);
     }
 }
