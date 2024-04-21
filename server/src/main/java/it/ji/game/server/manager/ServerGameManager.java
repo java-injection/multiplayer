@@ -14,10 +14,15 @@ import it.ji.game.utils.redis.RedisMessageListener;
 import it.ji.game.utils.settings.Settings;
 import it.ji.game.utils.settings.Status;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerGameManager implements RedisMessageListener, TurretListener {
+
     public final static int EMPTY = 0;
     public final static int PLAYER_1 = 1;
     public final static int PLAYER_2 = 2;
@@ -26,6 +31,8 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     private static final int PROJECTILE = 5;
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
+
+    private Map<Integer, Coordinates> bulletsId = new HashMap<>();
     private String serverId;
     private Integer[][] localBoard;
     private Player player1;
@@ -54,6 +61,8 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
         this.serverId = serverId;
     }
 
+
+
     public String getServerId() {
         return serverId;
     }
@@ -62,12 +71,12 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
         return player1 != null && player2 != null;
     }
 
-    public void startServer(){
+    public void startServer() {
         try {
             System.out.println("[GameServer] Starting server...");
             serverId = Utils.generateServerId();
             System.out.println("[GameServer] Server Id: " + serverId);
-            RedisManager.getInstance().hset(GAME_NAME,serverId, String.valueOf(Status.WAITING));
+            RedisManager.getInstance().hset(GAME_NAME, serverId, String.valueOf(Status.WAITING));
             System.out.println("[DEBUG] Subscribing...");
             /*RedisManager.getInstance().subscribe(
                     message -> {
@@ -93,7 +102,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                     e.printStackTrace();
                 }
                 System.out.print("waiting for players " + (elapsed++) + " seconds\r");
-                if (canStart()  ) {
+                if (canStart()) {
                     System.out.println("both players ready");
                     break;
                 }
@@ -106,11 +115,10 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             System.out.println(" ************************ Server started ************************ ");
             startGame();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public void setInitialPositions() {
         Coordinates p1RandomInitCoords = getRandomCoordinates();
         Coordinates p2RandomInitCoords = getRandomCoordinates();
@@ -205,6 +213,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                 }
                 System.out.println("Player "+messageusername+" moved to "+x+","+y);
                 RedisManager.getInstance().publish("game.move.client.accepted", serverId+":"+messageusername+":"+x+","+y);
+                System.out.println(localBoard);
             }
             printBoard();
         }
@@ -297,8 +306,17 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     }
 
     @Override
-    public void onBulletMoved(int x, int y, int damage) {
+    public void onBulletMoved(int id, int x, int y, int damage) {
+        if (bulletsId.get(id) == null){
+            bulletsId.put(id, new Coordinates(x,y));
+            return;
+        }
+        Coordinates coordinates = bulletsId.get(id);
+        System.out.println("[DEBUG] [BULLET] bulletsID.get(id): " +bulletsId.get(id)+" map size: "+bulletsId.size());
+        localBoard[coordinates.x()][coordinates.y()] = 0;
+        bulletsId.put(id, new Coordinates(x,y));
         System.out.println("Bullet moved to: "+x+","+y+" with damage: "+damage);
+        RedisManager.getInstance().publish("game.projectile", serverId+":"+id+":"+x+","+y);
         int cell = localBoard[x][y];
         if (cell == PLAYER_1 || cell == PLAYER_2){
             System.out.println("Player hit");
@@ -320,15 +338,12 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                 }
             }
         }else if (cell !=0){
+            System.out.println(localBoard[x][y] + " hit");
             System.out.println("Turret hit");
-            if (cell == TURRET_PLAYER_1){
-                localBoard[x][y] = 0;
-            }else if (cell == TURRET_PLAYER_2){
-                localBoard[x][y] = 0;
-            }
+
         } else {
             localBoard[x][y] = PROJECTILE;
-            RedisManager.getInstance().publish("game.projectile", serverId+":"+x+","+y);
+            RedisManager.getInstance().publish("game.projectile", serverId+":"+id+":"+x+","+y);
         }
 
     }

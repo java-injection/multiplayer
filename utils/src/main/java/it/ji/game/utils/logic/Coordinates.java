@@ -15,12 +15,12 @@ public record Coordinates(int x, int y) {
         return new Coordinates(coordinates.x() + 1, coordinates.y());
     }
     public static Coordinates up(Coordinates coordinates) throws InvalidCoordinatesException {
-        if (coordinates.y() == Settings.getInstance().getHeight() - 1)
+        if (coordinates.y() == -0)
             throw new InvalidCoordinatesException("Invalid coordinates");
         return new Coordinates(coordinates.x(), coordinates.y() - 1);
     }
     public static Coordinates down(Coordinates coordinates) throws InvalidCoordinatesException {
-        if (coordinates.y() == 0)
+        if (coordinates.y() == Settings.getInstance().getHeight() - 1)
             throw new InvalidCoordinatesException("Invalid coordinates");
         return new Coordinates(coordinates.x(), coordinates.y() + 1);
     }

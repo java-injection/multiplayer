@@ -44,7 +44,10 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.turret.client.accepted",
                 "game.turret.accepted",
                 "game.turret.declined",
-                "game.hit");
+                "game.hit",
+                "game.projectile",
+                "game.projectile.moved"
+        );
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
@@ -296,8 +299,27 @@ public class ClientGameManager implements RedisMessageListener {
             String[] splitCoordinates = messageCoords.split(",");
             Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
             System.out.println("[DEBUG] Server moved bullet to position: " + xy);
-            localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
+
         }
+        if (message.channel().equals("game.projectile")){
+            channelProjectileMovedOrCreated(message.message());
+        }
+
+    }
+    private void channelProjectileMovedOrCreated(String message){
+        String[] split = message.split(":");
+        String messageServerID = split[0];
+        if (!messageServerID.equals(serverId)){
+            System.out.println("[DEBUG] ServerId does not match");
+            return;
+        }
+        String messageCoords = split[1];
+        messageCoords = messageCoords.replace("(", "");
+        messageCoords = messageCoords.replace(")", "");
+        String[] splitCoords = messageCoords.split(",");
+        Coordinates xy = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
+        System.out.println("[DEBUG] Server moved projectile to position: " + xy);
+        localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
     }
     public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
         System.out.println("[DEBUG] updating local board for player: " + player.getUsername() + " at position: " + coordinates);
