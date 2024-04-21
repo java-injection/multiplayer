@@ -316,7 +316,6 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
         localBoard[coordinates.x()][coordinates.y()] = 0;
         bulletsId.put(id, new Coordinates(x,y));
         System.out.println("Bullet moved to: "+x+","+y+" with damage: "+damage);
-        RedisManager.getInstance().publish("game.projectile", serverId+":"+id+":"+x+","+y);
         int cell = localBoard[x][y];
         if (cell == PLAYER_1 || cell == PLAYER_2){
             System.out.println("Player hit");

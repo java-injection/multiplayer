@@ -24,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ClientGameManager implements RedisMessageListener {
     private static ClientGameManager instance = null;
     private String serverId;
+    private Map<Integer, Coordinates> bulletsId = new HashMap<>();
     private SingleCellPanel[][] localBoard = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     private Map<Player, Coordinates> playerPositions = new HashMap<>();
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
@@ -287,20 +288,6 @@ public class ClientGameManager implements RedisMessageListener {
                 getEnemyPlayer().hit(Integer.parseInt(messageDamage));
             }
         }
-        if (message.channel().equals("game.bullet")){
-            String message1 = message.message();
-            String[] split = message1.split(":");
-            String messageServerId = split[0];
-            String messageCoords = split[1];
-            if (!messageServerId.equals(serverId)){
-                System.out.println("[DEBUG] ServerId does not match");
-                return;
-            }
-            String[] splitCoordinates = messageCoords.split(",");
-            Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
-            System.out.println("[DEBUG] Server moved bullet to position: " + xy);
-
-        }
         if (message.channel().equals("game.projectile")){
             channelProjectileMovedOrCreated(message.message());
         }
@@ -313,10 +300,18 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] ServerId does not match");
             return;
         }
-        String messageCoords = split[1];
+        String messageBulletId = split[1];
+        String messageCoords = split[2];
         messageCoords = messageCoords.replace("(", "");
         messageCoords = messageCoords.replace(")", "");
         String[] splitCoords = messageCoords.split(",");
+        if (bulletsId.get(messageBulletId) == null) {
+            bulletsId.put(Integer.parseInt(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
+        }
+        else {
+            Coordinates previousCoordinates = bulletsId.get(messageBulletId);
+            localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
+        }
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
         System.out.println("[DEBUG] Server moved projectile to position: " + xy);
         localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
