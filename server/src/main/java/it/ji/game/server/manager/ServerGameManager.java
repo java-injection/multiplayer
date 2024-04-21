@@ -351,5 +351,6 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     public void onBulletRemoved(int x, int y) {
         System.out.println("Bullet removed from: "+x+","+y);
         localBoard[x][y] = 0;
+        RedisManager.getInstance().publish("game.bullet.remove", serverId+":"+x+","+y);
     }
 }
