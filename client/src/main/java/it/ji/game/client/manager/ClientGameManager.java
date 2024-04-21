@@ -305,13 +305,17 @@ public class ClientGameManager implements RedisMessageListener {
         messageCoords = messageCoords.replace("(", "");
         messageCoords = messageCoords.replace(")", "");
         String[] splitCoords = messageCoords.split(",");
-        if (bulletsId.get(messageBulletId) == null) {
+        if (bulletsId.get(Integer.parseInt(messageBulletId)) == null) {
+            System.out.println("[DEBUG] Server created projectile at position: " + splitCoords[0] + " " + splitCoords[1]);
             bulletsId.put(Integer.parseInt(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
         else {
-            Coordinates previousCoordinates = bulletsId.get(messageBulletId);
+            System.out.println("[DEBUG] Server moved projectile at position: " + splitCoords[0] + " " + splitCoords[1]);
+            Coordinates previousCoordinates = bulletsId.get(Integer.parseInt(messageBulletId));
             localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
+            bulletsId.put(Integer.parseInt(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
+
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
         System.out.println("[DEBUG] Server moved projectile to position: " + xy);
         localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
