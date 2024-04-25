@@ -2,14 +2,11 @@ package it.ji.game.utils.logic.objects;
 
 import it.ji.game.utils.logic.Coordinates;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TurretManager {
     private static TurretManager instance = null;
-    private Map<Integer, Coordinates> bulletsId = new HashMap<>();
+    private Map<Long, Coordinates> bulletsId = new HashMap<>();
     private List<TurretListener> turretListeners = new LinkedList<>();
     private TurretManager() {
     }
@@ -28,9 +25,15 @@ public class TurretManager {
     public void removeTurretListener(TurretListener turret) {
         turretListeners.remove(turret);
     }
-    public int insertNewBullet(Coordinates coordinates){
-        int id = bulletsId.size()+1;
+    public long insertNewBullet(Coordinates coordinates){
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+
+        }
+        long id = new Date().getTime();
         bulletsId.put(id, coordinates);
+        System.out.println("[DEBUG] Inserted new bullet with id: " + id + " at coordinates: " + coordinates.x() + " " + coordinates.y());
         return id;
     }
     public void removeBullet(int id){
@@ -40,15 +43,22 @@ public class TurretManager {
         return bulletsId.get(id);
     }
 
-    public void notifyBulletMoved(int id ,int x, int y, int damage) {
+    public void notifyBulletMoved(long id ,int x, int y, int damage) {
         for (TurretListener turret : turretListeners) {
             turret.onBulletMoved(id,x, y, damage);
         }
     }
 
-    public void notifyBulletRemoved(int x, int y) {
+    public void notifyBulletRemoved(long id,int x, int y) {
         for (TurretListener turret : turretListeners) {
-            turret.onBulletRemoved(x, y);
+            turret.onBulletRemoved(id,x, y);
         }
+    }
+
+    public boolean isBulletExisting(long id) {
+        return bulletsId.containsKey(id);
+    }
+    public void removeBulletFromMap(long id){
+        bulletsId.remove(id);
     }
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ClientGameManager implements RedisMessageListener {
     private static ClientGameManager instance = null;
     private String serverId;
-    private Map<Integer, Coordinates> bulletsId = new HashMap<>();
+    private Map<Long, Coordinates> bulletsId = new HashMap<>();
     private SingleCellPanel[][] localBoard = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     private Map<Player, Coordinates> playerPositions = new HashMap<>();
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
@@ -47,7 +47,8 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.turret.declined",
                 "game.hit",
                 "game.projectile",
-                "game.projectile.moved"
+                "game.projectile.moved",
+                "game.bullet.remove"
         );
     }
     public void addPlayer(Player selfPlayer) {
@@ -291,8 +292,31 @@ public class ClientGameManager implements RedisMessageListener {
         if (message.channel().equals("game.projectile")){
             channelProjectileMovedOrCreated(message.message());
         }
+        if (message.channel().equals("game.bullet.remove")){
+            channelProjectileRemoved(message.message());
+        }
 
     }
+
+    private void channelProjectileRemoved(String message) {
+        System.out.println("[DEBUG] handling message in channel: <game.bullet.removed>");
+        String[] split = message.split(":");
+        String messageServerID = split[0];
+        if (!messageServerID.equals(serverId)){
+            System.out.println("[DEBUG] ServerId does not match");
+            return;
+        }
+        String messageBulletId = split[1];
+        String messageCoords = split[2];
+        messageCoords = messageCoords.replace("(", "");
+        messageCoords = messageCoords.replace(")", "");
+        String[] splitCoords = messageCoords.split(",");
+        Coordinates messageCoordinates = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
+        bulletsId.remove(Long.parseLong(messageBulletId));
+        localBoard[messageCoordinates.x()][messageCoordinates.y()].setBackground(Color.WHITE);
+        System.out.println("[DEBUG] Server removed projectile at position: " + messageCoordinates);
+    }
+
     private void channelProjectileMovedOrCreated(String message){
         String[] split = message.split(":");
         String messageServerID = split[0];
@@ -305,15 +329,15 @@ public class ClientGameManager implements RedisMessageListener {
         messageCoords = messageCoords.replace("(", "");
         messageCoords = messageCoords.replace(")", "");
         String[] splitCoords = messageCoords.split(",");
-        if (bulletsId.get(Integer.parseInt(messageBulletId)) == null) {
+        if (bulletsId.get(Long.parseLong(messageBulletId)) == null) {
             System.out.println("[DEBUG] Server created projectile at position: " + splitCoords[0] + " " + splitCoords[1]);
-            bulletsId.put(Integer.parseInt(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
+            bulletsId.put(Long.parseLong(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
         else {
             System.out.println("[DEBUG] Server moved projectile at position: " + splitCoords[0] + " " + splitCoords[1]);
-            Coordinates previousCoordinates = bulletsId.get(Integer.parseInt(messageBulletId));
+            Coordinates previousCoordinates = bulletsId.get(Long.parseLong(messageBulletId));
             localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
-            bulletsId.put(Integer.parseInt(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
+            bulletsId.put(Long.parseLong(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
 
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
