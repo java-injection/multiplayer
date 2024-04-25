@@ -309,10 +309,9 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     public void onBulletMoved(int id, int x, int y, int damage) {
         if (bulletsId.get(id) == null){
             bulletsId.put(id, new Coordinates(x,y));
-            return;
         }
         Coordinates coordinates = bulletsId.get(id);
-        System.out.println("[DEBUG] [BULLET] bulletsID.get(id): " +bulletsId.get(id)+" map size: "+bulletsId.size());
+        System.out.println("[DEBUG] [BULLET] bulletsID.get(id): " +bulletsId.get(id).toString()+" map size: "+bulletsId.size());
         localBoard[coordinates.x()][coordinates.y()] = 0;
         bulletsId.put(id, new Coordinates(x,y));
         System.out.println("Bullet moved to: "+x+","+y+" with damage: "+damage);

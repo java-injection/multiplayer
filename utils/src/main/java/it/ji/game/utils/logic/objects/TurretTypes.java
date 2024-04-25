@@ -18,31 +18,29 @@ public enum TurretTypes {
                     try {
                         Thread.sleep(10000);
                         try {
-                            TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
+                            /*TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());*/
                             bulletUP = Coordinates.up(bulletUP);
-                            System.out.println("[DEBUG] Bullet moved UP at coordinates: " + bulletUP.x() + " " + bulletUP.y());
                             TurretManager.getInstance().notifyBulletMoved(id1,bulletUP.x(), bulletUP.y(), 10);
 
                         } catch (InvalidCoordinatesException e) {
                             TurretManager.getInstance().notifyBulletRemoved(bulletUP.x(), bulletUP.y());
                         }
                         try {
-                            TurretManager.getInstance().notifyBulletRemoved(bulletDOWN.x(), bulletDOWN.y());
+                            /*TurretManager.getInstance().notifyBulletRemoved(bulletDOWN.x(), bulletDOWN.y());*/
                             bulletDOWN = Coordinates.down(bulletDOWN);
-                            System.out.println("[DEBUG] Bullet moved DOWN at coordinates: " + bulletDOWN.x() + " " + bulletDOWN.y());
                             TurretManager.getInstance().notifyBulletMoved(id2,bulletDOWN.x(), bulletDOWN.y(), 1);
                         } catch (InvalidCoordinatesException e) {
                             TurretManager.getInstance().notifyBulletRemoved(bulletDOWN.x(), bulletDOWN.y());
                         }
                         try {
-                            TurretManager.getInstance().notifyBulletRemoved(bulletLEFT.x(), bulletLEFT.y());
+                            /*TurretManager.getInstance().notifyBulletRemoved(bulletLEFT.x(), bulletLEFT.y());*/
                             bulletLEFT = Coordinates.left(bulletLEFT);
                             TurretManager.getInstance().notifyBulletMoved(id3,bulletLEFT.x(), bulletLEFT.y(), 1);
                         } catch (InvalidCoordinatesException e) {
                             TurretManager.getInstance().notifyBulletRemoved(bulletLEFT.x(), bulletLEFT.y());
                         }
                         try {
-                            TurretManager.getInstance().notifyBulletRemoved(bulletRIGHT.x(), bulletRIGHT.y());
+                            /*TurretManager.getInstance().notifyBulletRemoved(bulletRIGHT.x(), bulletRIGHT.y());*/
                             bulletRIGHT = Coordinates.right(bulletRIGHT);
                             TurretManager.getInstance().notifyBulletMoved(id4,bulletRIGHT.x(), bulletRIGHT.y(), 1);
                         } catch (InvalidCoordinatesException e) {
