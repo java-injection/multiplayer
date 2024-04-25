@@ -299,8 +299,19 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     private void channelProjectileRemoved(String message) {
-        System.out.println("[DEBUG] handling message in channel: <game.bullet.removed>");
+        System.out.println("[DEBUG] handling message in channel: <game.bullet.remove>");
         String[] split = message.split(":");
+        if (split.length == 2) {
+            String messageServerID = split[0];
+            String messageBulletID = split[1];
+            if (!messageServerID.equals(serverId)){
+                System.out.println("[DEBUG] ServerId does not match");
+                return;
+            }
+            Coordinates coordinates = bulletsId.get(Long.parseLong(messageBulletID));
+            localBoard[coordinates.x()][coordinates.y()].setBackground(Color.WHITE);
+            return;
+        }
         String messageServerID = split[0];
         if (!messageServerID.equals(serverId)){
             System.out.println("[DEBUG] ServerId does not match");

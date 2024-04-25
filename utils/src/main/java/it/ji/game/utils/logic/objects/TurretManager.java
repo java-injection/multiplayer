@@ -36,10 +36,8 @@ public class TurretManager {
         System.out.println("[DEBUG] Inserted new bullet with id: " + id + " at coordinates: " + coordinates.x() + " " + coordinates.y());
         return id;
     }
-    public void removeBullet(int id){
-        bulletsId.remove(id);
-    }
-    public Coordinates getBulletCoordinates(int id){
+
+    public Coordinates getBulletCoordinates(long id){
         return bulletsId.get(id);
     }
 
@@ -59,6 +57,7 @@ public class TurretManager {
         return bulletsId.containsKey(id);
     }
     public void removeBulletFromMap(long id){
+        System.out.println("[DEBUG] Removed bullet with id: " + id + " at coordinates: " + bulletsId.get(id).x() + " " + bulletsId.get(id).y());
         bulletsId.remove(id);
     }
 }

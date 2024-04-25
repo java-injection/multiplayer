@@ -320,7 +320,9 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             System.out.println("Player hit");
             if (cell == PLAYER_1){
                 player1.hit(damage);
-                RedisManager.getInstance().publish("game.hit", serverId+damage+":"+player1.getUsername());
+                RedisManager.getInstance().publish("game.hit", serverId+":"+damage+":"+player1.getUsername());
+
+
                 if (player1.isDead()){
                     System.out.println("Player 1 dead");
                     RedisManager.getInstance().publish("game.end", serverId+":"+player2.getUsername());
@@ -329,14 +331,19 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             }else if (cell == PLAYER_2){
                 player2.hit(damage);
                 RedisManager.getInstance().publish("game.hit", serverId+":"+damage+":"+player2.getUsername());
+
                 if (player2.isDead()){
                     System.out.println("Player 2 dead");
                     RedisManager.getInstance().publish("game.end", serverId+":"+player1.getUsername());
                     shutDownServer();
                 }
             }
+            TurretManager.getInstance().removeBulletFromMap(id);
+            RedisManager.getInstance().publish("game.bullet.remove", serverId+":"+id);
         }else if (cell !=0){
             System.out.println(localBoard[x][y] + " hit");
+
+            TurretManager.getInstance().removeBulletFromMap(id);
         } else {
             localBoard[x][y] = PROJECTILE;
             RedisManager.getInstance().publish("game.projectile", serverId+":"+id+":"+x+","+y);

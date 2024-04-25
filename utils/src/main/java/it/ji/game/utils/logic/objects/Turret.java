@@ -25,7 +25,9 @@ public class Turret extends Items {
 
     @Override
     public void use() throws Exception {
-        type.getFireMode().fire(coordinates.x(), coordinates.y(),turretCode);
-
+        Thread t = new Thread(() -> {
+            type.getFireMode().fire(coordinates.x(), coordinates.y(),turretCode);
+        });
+        t.start();
     }
 }
