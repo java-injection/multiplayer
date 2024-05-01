@@ -20,8 +20,8 @@ public class RedisManager {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private RedisManager() {
-        jedisBroker = new Jedis("http://217.160.155.226:19003");
-        jedisRW     = new Jedis("http://217.160.155.226:19003");
+        jedisBroker = new Jedis("http://152.228.218.211:200");
+        jedisRW     = new Jedis("http://152.228.218.211:200");
     }
 
     public static RedisManager getInstance() {
@@ -63,7 +63,7 @@ public class RedisManager {
                 };
 
                 // Apri una nuova connessione Jedis per la sottoscrizione
-                try (Jedis jedis = new Jedis("http://217.160.155.226:19003")) {
+                try (Jedis jedis = new Jedis("http://152.228.218.211:200")) {
                     jedis.subscribe(jedisPubSub, channels);
                 }
                 Arrays.stream(channels).forEach(channel -> System.out.println("Subscribed to channel: " + channel));

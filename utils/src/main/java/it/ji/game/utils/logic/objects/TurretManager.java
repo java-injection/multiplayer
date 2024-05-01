@@ -52,7 +52,24 @@ public class TurretManager {
             turret.onBulletRemoved(id,x, y);
         }
     }
-
+    public void notifyBulletDeleted(long id){
+        System.out.println("[DEBUG] Notifying bullet deleted with id: " + id);
+        bulletsId.remove(id);
+        for (TurretListener turretListener : turretListeners) {
+            turretListener.onBulletDeleted(id);
+        }
+    }
+    public long getBulletIDfromCoords(int x, int y){
+        for (Map.Entry<Long, Coordinates> entry : bulletsId.entrySet()) {
+            if (entry.getValue().x() == x && entry.getValue().y() == y) {
+                return entry.getKey();
+            }
+        }
+        return -1;
+    }
+    public void updateBulletCoordinates(long id, Coordinates coordinates){
+        bulletsId.put(id, coordinates);
+    }
     public boolean isBulletExisting(long id) {
         return bulletsId.containsKey(id);
     }

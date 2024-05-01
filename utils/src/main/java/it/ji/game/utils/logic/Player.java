@@ -19,6 +19,7 @@ public class Player {
     }
     public void hit(int damage) {
         HP -= damage;
+
     }
 
 

@@ -49,6 +49,7 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.projectile",
                 "game.projectile.moved",
                 "game.bullet.remove"
+
         );
     }
     public void addPlayer(Player selfPlayer) {
@@ -308,6 +309,7 @@ public class ClientGameManager implements RedisMessageListener {
                 System.out.println("[DEBUG] ServerId does not match");
                 return;
             }
+            System.out.println("[DEBUG] Server DELETED projectile with id: " + messageBulletID);
             Coordinates coordinates = bulletsId.get(Long.parseLong(messageBulletID));
             localBoard[coordinates.x()][coordinates.y()].setBackground(Color.WHITE);
             return;
