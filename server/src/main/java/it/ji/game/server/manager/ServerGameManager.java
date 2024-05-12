@@ -87,7 +87,8 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
                     "login",
                     "game.move.server",
                     "game.turret.server",
-                    "game.item"
+                    "game.item",
+                    "login.request.player"
             );
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
 
@@ -161,7 +162,13 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
 
     @Override
     public void onMessage(RedisMessage message) {
-
+        if (message.channel().equals("login.request.player")){
+            if (player1 == null) {
+                RedisManager.getInstance().publish("login.response.player", serverId);
+            }else {
+                RedisManager.getInstance().publish("login.response.player", serverId+":"+player1.getUsername());
+            }
+        }
         if (message.channel().equals("login")){
             if (player1 == null){
                 player1 = new Player(message.message().split(":")[1].trim(), PlayerType.SERVER);

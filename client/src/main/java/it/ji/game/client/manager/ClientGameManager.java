@@ -29,9 +29,13 @@ public class ClientGameManager implements RedisMessageListener {
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
     private Player selfPlayer;
     private Coordinates lastCoordinates;
+
+    private Boolean clientAccpted = false;
+
     private ClientGameManager() {
 
         RedisManager.getInstance().subscribe(this,
+                "login.response.player",
                 "login.status.accepted",
                 "game.start",
                 "game.init",
@@ -52,12 +56,17 @@ public class ClientGameManager implements RedisMessageListener {
     }
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
-        this.selfPlayer = selfPlayer;
+
     }
 
-    public void addClientListener(ClientListener listener){
+    public void addClientListener(ClientListener listener) {
         clientListeners.add(listener);
     }
+
+    public Boolean isClientAccpted() {
+        return clientAccpted;
+    }
+
     public static ClientGameManager getInstance() {
         if (instance == null) {
             instance = new ClientGameManager();
@@ -68,6 +77,7 @@ public class ClientGameManager implements RedisMessageListener {
     public Map<Player, Coordinates> getPlayerPositions() {
         return playerPositions;
     }
+
     public Player getPlayerFromType(PlayerType type) {
         return playerPositions
                 .keySet()
@@ -75,6 +85,7 @@ public class ClientGameManager implements RedisMessageListener {
                 .filter(player -> player.getType() == type)
                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
     }
+
     public void setPlayerPositions(Map<Player, Coordinates> playerPositions) {
         this.playerPositions = playerPositions;
     }
@@ -86,6 +97,7 @@ public class ClientGameManager implements RedisMessageListener {
     public void setLocalBoard(SingleCellPanel[][] localBoard) {
         this.localBoard = localBoard;
     }
+
     public void setServerId(String serverId) {
         this.serverId = serverId;
     }
@@ -94,37 +106,46 @@ public class ClientGameManager implements RedisMessageListener {
         return serverId;
     }
 
-    private boolean canStart(){
+    private boolean canStart() {
         //print contents of the map and everything that could set can start to false
         System.out.println("[DEBUG] playerPositions: " + playerPositions);
         System.out.println("[DEBUG] serverId: " + serverId);
         System.out.println("[DEBUG] playerPositions.size(): " + playerPositions.size());
         return playerPositions.size() == 2 &&
-                serverId !=  null &&
+                serverId != null &&
                 !serverId.isBlank() &&
                 !serverId.isEmpty() &&
                 playerPositions.keySet().stream().allMatch(player -> player.getUsername() != null && !player.getUsername().isBlank() && !player.getUsername().isEmpty());
     }
-    public void startClient() throws ServerNotFoundException, NameAlreadyInUse {
-        if (isServerWaiting(serverId)) {
-            if (isNameInUse()) {
-                playerPositions.keySet().stream().filter(player -> player.getType() == PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
-                    RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
-                }, () -> {
-                    throw new IllegalArgumentException("Server is not waiting for players");
-                });
-                System.out.println("Waiting for the server to start the game ..");
+
+    public void requestToStartClient() {
+        try {
+            if (serverId == null || serverId.isBlank() || serverId.isEmpty()) {
+                return;
             }
-        } else {
-            throw new ServerNotFoundException("Server not found");
+            if (isServerWaiting(serverId)) {
+                isNameInUse();
+            }
+        } catch (NameAlreadyInUse e) {
+            throw new RuntimeException(e);
+        } catch (ServerNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private boolean isNameInUse() throws NameAlreadyInUse {
-        return RedisManager.getInstance().hget(Settings.getInstance().getGameName(), serverId)
-                .map(status -> status.equals(String.valueOf(Status.WAITING)))
-                .orElseThrow(() -> new NameAlreadyInUse("Name already in use"));
+    public void startClient() throws ServerNotFoundException {
+        playerPositions.keySet().stream().filter(player -> player.getType() == PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
+            RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
+            }, () -> {
+                throw new IllegalArgumentException("Server is not waiting for players");
+            });
+            System.out.println("Waiting for the server to start the game ..");
     }
+
+    private void isNameInUse() throws NameAlreadyInUse {
+        RedisManager.getInstance().publish("login.request.player", serverId);
+    }
+
 
     public boolean isServerWaiting(String serverId) throws ServerNotFoundException {
         return RedisManager.getInstance().hget(Settings.getInstance().getGameName(), serverId)
@@ -133,10 +154,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     public Player getSelfPlayer() {
-        return playerPositions.keySet().stream()
-                .filter(player -> player.getType() == PlayerType.SELF)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Self player not found"));
+        return this.selfPlayer;
     }
     public Player getEnemyPlayer() {
         return playerPositions.keySet().stream()
@@ -170,6 +188,7 @@ public class ClientGameManager implements RedisMessageListener {
         System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
 
     }
+
     public Coordinates getCoordinatesFromPlayer(Player player) {
         return playerPositions.get(player);
     }
@@ -179,13 +198,33 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] message is null or message.message() is null or message.channel() is null");
             return;
         }
-
+        if (selfPlayer == null || serverId == null) {
+            System.out.println("[DEBUG] selfPlayer is null");
+            return;
+        }
         System.out.println("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId);
-        if (message.channel().equals("login.status.accepted")) {
-            if (getSelfPlayer() == null) {
-                System.out.println("[DEBUG] selfPlayer is null");
-                return;
+        if (message.channel().equals("login.response.player")) {
+            String[] serverMessage = message.message().split(":");
+            System.out.println("[debug] "+message.message());
+            if (serverMessage[0].equals(serverId)) {
+                try {
+                if (serverMessage.length <2 || !serverMessage[1].equals(getSelfPlayer().getUsername())){
+                    ClientGameManager.getInstance().addPlayer(selfPlayer);
+                    System.out.println("[DEBUG] STO STARTANDO IL CLIENT");
+                    startClient();
+                }else{
+                    System.out.println("name already in use");
+                    for (ClientListener clientListener : clientListeners) {
+                        clientListener.userRejected(serverId, getSelfPlayer().getUsername());
+                    }
+                }
+                } catch (ServerNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
+        }
+        if (message.channel().equals("login.status.accepted")) {
+            this.clientAccpted = true;
             System.out.println("[DEBUG] handling message in channel: <login.status.accepted>");
             String[] split = message.message().split(":");
             System.out.println("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]");
@@ -197,23 +236,23 @@ public class ClientGameManager implements RedisMessageListener {
             }
         }
         if (message.channel().equals("game.start")) {
-
             System.out.println("[DEBUG] handling message in channel: <game.start>");
+            System.out.println("[DEBUG] message: " + message.message());
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messagePlayer1 = split[1];
             String messagePlayer2 = split[2];
             if (messageServerId.equals(serverId)) {
                 System.out.println("[DEBUG] Server started game for serverId: " + serverId);
-
                 playerPositions.entrySet().stream().findFirst().ifPresent((entry) -> {
                     if (entry.getKey().getUsername().equals(messagePlayer1)) {
+                        System.out.println("[DEBUG] IL NEMICO è " + messagePlayer2);
                         playerPositions.put(new Player(messagePlayer2, PlayerType.ENEMY), null);
                     } else if (entry.getKey().getUsername().equals(messagePlayer2)) {
+                        System.out.println("[DEBUG] IL NEMICO è " + messagePlayer1);
                         playerPositions.put(new Player(messagePlayer1, PlayerType.ENEMY), null);
                     }
                 });
-
                 if (!canStart()) {
                     throw new IllegalArgumentException("serverId and username cannot be null");
                 }
@@ -225,10 +264,6 @@ public class ClientGameManager implements RedisMessageListener {
 
             initPositions(message);
         }
-        if (message.channel().equals("game.move.client.refused")) { //todo levare
-            System.out.println("[DEBUG] handling message in channel: <game.move.client.refused>");
-            System.out.println("[DEBUG] message: " + message.message());
-            }
         if (message.channel().equals("game.move.client.accepted")){
             System.out.println("[DEBUG] handling message in channel: <game.move.client>");
             String[] split = message.message().split(":");
@@ -236,7 +271,6 @@ public class ClientGameManager implements RedisMessageListener {
             String messageUsername = split[1];
             String messagePosition = split[2];
             if (messageUsername.equals(getSelfPlayer().getUsername())) {
-
                 updateLocalBoardByUsername(new Coordinates(Integer.parseInt(messagePosition.split(",")[0]), Integer.parseInt(messagePosition.split(",")[1])), getSelfPlayer());
                 System.out.println("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition);
                 return;
@@ -251,10 +285,6 @@ public class ClientGameManager implements RedisMessageListener {
             for (ClientListener clientListener : clientListeners) {
                 clientListener.positionChanged(messageUsername, xy);
             }
-        }
-        if (message.channel().equals("game.turret.client.refused")) {
-            System.out.println("[DEBUG] handling message in channel: <game.turret.client.refused>");
-            System.out.println("[DEBUG] message: " + message.message());
         }
         if (message.channel().equals("game.turret.client.accepted")) {
             System.out.println("[DEBUG] handling message in channel: <game.turret.client.accepted>");
@@ -441,5 +471,9 @@ public class ClientGameManager implements RedisMessageListener {
         }*/
         RedisManager.getInstance().publish("game.turret.server",
                  serverId+":"+selfPlayer.getUsername()+":"+coordinates.x() + "," + coordinates.y());
+    }
+
+    public void setSelfPlayer(Player player) {
+        this.selfPlayer = player;
     }
 }

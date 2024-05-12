@@ -29,6 +29,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
      * Creates new form WatingGui
      */
     public WatingGui() {
+        double v = Math.random() * 20;
+        this.setTitle(v+"");
+        System.out.println(v);
         initComponents();
         this.setLocationRelativeTo(null);
         //dont start the gui with a focused textfield
@@ -56,14 +59,8 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public void tryLogin() {
         this.jLabel_Error.setText("");
         ClientGameManager.getInstance().setServerId(ServerIDField.getText());
-        ClientGameManager.getInstance().addPlayer(new Player(nameField.getText(), PlayerType.SELF));
-        try {
-            ClientGameManager.getInstance().startClient();
-        } catch (ServerNotFoundException e) {
-            showError("Server Not Found");
-        } catch (NameAlreadyInUse e) {
-            showError("Name already in use");
-        }
+        ClientGameManager.getInstance().setSelfPlayer(new Player(nameField.getText(), PlayerType.SELF));
+        ClientGameManager.getInstance().requestToStartClient();
     }
 
     @Override
@@ -75,6 +72,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void userRejected(String serverId, String username) {
+        if (ClientGameManager.getInstance().isClientAccpted()){
+            return;
+        }
         showError(serverId + " : " + username + " rejected");
     }
 
