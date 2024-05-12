@@ -37,20 +37,23 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
          */
         this.setAlwaysOnTop(true);
         jButton1.setBackground(new java.awt.Color(0, 59, 43));
+        this.jLabel_message.setText("Insert your username and server id");
         //set focus on login button
         jButton1.requestFocusInWindow();
+        this.jLabel_Error.setVisible(false);
 
     }
 
     public void tryLogin() {
+        this.jLabel_Error.setText("");
         ClientGameManager.getInstance().setServerId(ServerIDField.getText());
         ClientGameManager.getInstance().addPlayer(new Player(nameField.getText(), PlayerType.SELF));
         try {
             ClientGameManager.getInstance().startClient();
         } catch (ServerNotFoundException e) {
-            this.jLabel_message.setText("Server Not Found");
+            showError("Server Not Found");
         } catch (NameAlreadyInUse e) {
-            this.jLabel_message.setText("Nickname already in use");
+            showError("Name already in use");
         }
     }
 
@@ -63,7 +66,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void userRejected(String serverId, String username) {
-        jLabel_message.setText(serverId + " : " + username + " rejected");
+        showError(serverId + " : " + username + " rejected");
     }
 
     @Override
@@ -91,6 +94,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     @Override
     public void bulletMoved(Coordinates xy) {
 
+    }
+
+    private void showError(String errorMessage){
+        this.jLabel_Error.setText(errorMessage);
+        this.jLabel_Error.setVisible(true);
     }
 
     public void setMessage(String text) {
