@@ -22,6 +22,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
      * Creates new form WatingGui
      */
     public WatingGui() {
+        double v = Math.random() * 20;
+        this.setTitle(v+"");
+        System.out.println(v);
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
 /*
@@ -34,14 +37,8 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     public void tryLogin(){
         ClientGameManager.getInstance().setServerId(ServerIDField.getText());
-        ClientGameManager.getInstance().addPlayer(new Player(nameField.getText(),PlayerType.SELF));
-        try {
-            ClientGameManager.getInstance().startClient();
-        } catch (ServerNotFoundException e) {
-            this.jLabel_message.setText("Server Not Found");
-        } catch (NameAlreadyInUse e) {
-            this.jLabel_message.setText("Nickname already in use");
-        }
+        ClientGameManager.getInstance().setSelfPlayer(new Player(nameField.getText(), PlayerType.SELF));
+        ClientGameManager.getInstance().requestToStartClient();
     }
     @Override
     public void userAccepted(String serverId, String username) {
