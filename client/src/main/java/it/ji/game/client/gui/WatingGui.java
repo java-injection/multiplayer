@@ -4,6 +4,7 @@
  */
 package it.ji.game.client.gui;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import it.ji.game.client.Main;
 import it.ji.game.client.exceptions.NameAlreadyInUse;
 import it.ji.game.client.exceptions.ServerNotFoundException;
@@ -11,6 +12,7 @@ import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 import it.ji.game.utils.logic.PlayerType;
+import javax.swing.UIManager;
 
 /**
  *
@@ -24,17 +26,16 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public WatingGui() {
         initComponents();
         ClientGameManager.getInstance().addClientListener(this);
-/*
+        /*
         this.setTitle(ClientGameManager.getInstance().getSelfPlayer().getUsername());
-*/
+         */
         this.setAlwaysOnTop(true);
-
 
     }
 
-    public void tryLogin(){
+    public void tryLogin() {
         ClientGameManager.getInstance().setServerId(ServerIDField.getText());
-        ClientGameManager.getInstance().addPlayer(new Player(nameField.getText(),PlayerType.SELF));
+        ClientGameManager.getInstance().addPlayer(new Player(nameField.getText(), PlayerType.SELF));
         try {
             ClientGameManager.getInstance().startClient();
         } catch (ServerNotFoundException e) {
@@ -43,16 +44,17 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
             this.jLabel_message.setText("Nickname already in use");
         }
     }
+
     @Override
     public void userAccepted(String serverId, String username) {
-        System.out.println("[DEBUG][EVENT] User accepted: "+username);
-        jLabel_message.setText(serverId+" : "+username+" accepted");
+        System.out.println("[DEBUG][EVENT] User accepted: " + username);
+        jLabel_message.setText(serverId + " : " + username + " accepted");
         this.repaint();
     }
 
     @Override
     public void userRejected(String serverId, String username) {
-        jLabel_message.setText(serverId+" : "+username+" rejected");
+        jLabel_message.setText(serverId + " : " + username + " rejected");
     }
 
     @Override
@@ -68,7 +70,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     }
 
     @Override
-    public void positionChanged(String username, Coordinates direction ) {
+    public void positionChanged(String username, Coordinates direction) {
 
     }
 
@@ -81,7 +83,8 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public void bulletMoved(Coordinates xy) {
 
     }
-    public void setMessage(String text){
+
+    public void setMessage(String text) {
         this.jLabel_message.setText(text);
     }
 
@@ -189,6 +192,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
+                try {
+                    UIManager.setLookAndFeel(new FlatDarkLaf());
+                } catch (Exception ex) {
+                    System.out.println("[ERROR] FlatDarkLaf non trovato");
+                }
                 new WatingGui().setVisible(true);
             }
         });
