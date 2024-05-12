@@ -63,6 +63,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void userRejected(String serverId, String username) {
+        if (ClientGameManager.getInstance().isClientAccpted()){
+            return;
+        }
         showError(serverId + " : " + username + " rejected");
     }
 

@@ -30,6 +30,8 @@ public class ClientGameManager implements RedisMessageListener {
     private Player selfPlayer;
     private Coordinates lastCoordinates;
 
+    private Boolean clientAccpted = false;
+
     private ClientGameManager() {
 
         RedisManager.getInstance().subscribe(this,
@@ -52,7 +54,6 @@ public class ClientGameManager implements RedisMessageListener {
 
         );
     }
-
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
 
@@ -60,6 +61,10 @@ public class ClientGameManager implements RedisMessageListener {
 
     public void addClientListener(ClientListener listener) {
         clientListeners.add(listener);
+    }
+
+    public Boolean isClientAccpted() {
+        return clientAccpted;
     }
 
     public static ClientGameManager getInstance() {
@@ -183,6 +188,7 @@ public class ClientGameManager implements RedisMessageListener {
         System.out.println("[DEBUG] Server initialized game for serverId: " + serverId);
 
     }
+
     public Coordinates getCoordinatesFromPlayer(Player player) {
         return playerPositions.get(player);
     }
@@ -206,15 +212,19 @@ public class ClientGameManager implements RedisMessageListener {
                     ClientGameManager.getInstance().addPlayer(selfPlayer);
                     System.out.println("[DEBUG] STO STARTANDO IL CLIENT");
                     startClient();
+                }else{
+                    System.out.println("name already in use");
+                    for (ClientListener clientListener : clientListeners) {
+                        clientListener.userRejected(serverId, getSelfPlayer().getUsername());
+                    }
                 }
                 } catch (ServerNotFoundException e) {
                     e.printStackTrace();
                 }
-            }else{
-                System.out.println("name already in use");
             }
         }
-            if (message.channel().equals("login.status.accepted")) {
+        if (message.channel().equals("login.status.accepted")) {
+            this.clientAccpted = true;
             System.out.println("[DEBUG] handling message in channel: <login.status.accepted>");
             String[] split = message.message().split(":");
             System.out.println("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]");
