@@ -14,16 +14,15 @@ public class Main {
 
     public static void main(String[] args) {
 
-
-        Scanner scanner = new Scanner(System.in);
+        startWaitingGui();
+       /* Scanner scanner = new Scanner(System.in);
         System.out.println("Starting client...");
         System.out.println("insert server id: ");
         String serverId = scanner.nextLine();
         ClientGameManager.getInstance().setServerId(serverId);
         System.out.println("insert username: ");
         String username = scanner.nextLine();
-        ClientGameManager.getInstance().addPlayer(new Player(username, PlayerType.SELF));
-        startWaitingGui();
+        ClientGameManager.getInstance().addPlayer(new Player(username, PlayerType.SELF));*/
 
     }
      public  static void startGui() {
@@ -81,11 +80,11 @@ public class Main {
          java.awt.EventQueue.invokeLater(new Runnable() {
              public void run() {
                  new WatingGui().setVisible(true);
-                 try {
+                 /*try {
                      ClientGameManager.getInstance().startClient();
                  } catch (ServerNotFoundException e) {
                      throw new RuntimeException(e);
-                 }
+                 }*/
              }
          });
      }

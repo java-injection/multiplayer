@@ -1,6 +1,7 @@
 package it.ji.game.client.manager;
 
 
+import it.ji.game.client.exceptions.NameAlreadyInUse;
 import it.ji.game.client.exceptions.ServerNotFoundException;
 import it.ji.game.client.gui.ClientListener;
 import it.ji.game.client.gui.Direction;
@@ -8,8 +9,6 @@ import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.client.gui.SingleCellPanel;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
-import it.ji.game.utils.logic.objects.Items;
-import it.ji.game.utils.logic.objects.Turret;
 import it.ji.game.utils.redis.RedisManager;
 import it.ji.game.utils.redis.RedisMessage;
 import it.ji.game.utils.redis.RedisMessageListener;
@@ -28,7 +27,6 @@ public class ClientGameManager implements RedisMessageListener {
     private SingleCellPanel[][] localBoard = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
     private Map<Player, Coordinates> playerPositions = new HashMap<>();
     private List<ClientListener> clientListeners = new CopyOnWriteArrayList<>();
-    private List<Items> playerItems = new LinkedList<>();
     private Player selfPlayer;
     private Coordinates lastCoordinates;
     private ClientGameManager() {
@@ -55,7 +53,6 @@ public class ClientGameManager implements RedisMessageListener {
     public void addPlayer(Player selfPlayer) {
         playerPositions.put(selfPlayer, null);
         this.selfPlayer = selfPlayer;
-        /*playerItems.add(new Turret(selfPlayer,  serverId));*/
     }
 
     public void addClientListener(ClientListener listener){
@@ -98,7 +95,7 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     private boolean canStart(){
-        //print contnents of the map and everything that could set canstart to false
+        //print contents of the map and everything that could set can start to false
         System.out.println("[DEBUG] playerPositions: " + playerPositions);
         System.out.println("[DEBUG] serverId: " + serverId);
         System.out.println("[DEBUG] playerPositions.size(): " + playerPositions.size());
@@ -108,19 +105,27 @@ public class ClientGameManager implements RedisMessageListener {
                 !serverId.isEmpty() &&
                 playerPositions.keySet().stream().allMatch(player -> player.getUsername() != null && !player.getUsername().isBlank() && !player.getUsername().isEmpty());
     }
-    public void startClient() throws ServerNotFoundException {
+    public void startClient() throws ServerNotFoundException, NameAlreadyInUse {
         if (isServerWaiting(serverId)) {
-
-            playerPositions.keySet().stream().filter(player -> player.getType()== PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
-                RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
-            }, () -> {
-                throw new IllegalArgumentException("Server is not waiting for players");
-            });
-            System.out.println("Waiting for the server to start the game ..");
+            if (isNameInUse()) {
+                playerPositions.keySet().stream().filter(player -> player.getType() == PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
+                    RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
+                }, () -> {
+                    throw new IllegalArgumentException("Server is not waiting for players");
+                });
+                System.out.println("Waiting for the server to start the game ..");
+            }
         } else {
             throw new ServerNotFoundException("Server not found");
         }
     }
+
+    private boolean isNameInUse() throws NameAlreadyInUse {
+        return RedisManager.getInstance().hget(Settings.getInstance().getGameName(), serverId)
+                .map(status -> status.equals(String.valueOf(Status.WAITING)))
+                .orElseThrow(() -> new NameAlreadyInUse("Name already in use"));
+    }
+
     public boolean isServerWaiting(String serverId) throws ServerNotFoundException {
         return RedisManager.getInstance().hget(Settings.getInstance().getGameName(), serverId)
                 .map(status -> status.equals(String.valueOf(Status.WAITING)))

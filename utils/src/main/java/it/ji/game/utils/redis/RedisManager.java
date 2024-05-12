@@ -15,13 +15,14 @@ public class RedisManager {
     private static RedisManager instance = null;
     private Jedis jedisBroker = null;
     private Jedis jedisRW = null;
+    private final String brokerAddress = "http://152.228.218.211:200";
 
     private List<RedisMessageListener> listeners = new ArrayList<>();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private RedisManager() {
-        jedisBroker = new Jedis("http://152.228.218.211:200");
-        jedisRW     = new Jedis("http://152.228.218.211:200");
+        jedisBroker = new Jedis(brokerAddress);
+        jedisRW     = new Jedis(brokerAddress);
     }
 
     public static RedisManager getInstance() {
