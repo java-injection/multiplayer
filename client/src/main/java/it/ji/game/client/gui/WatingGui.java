@@ -20,16 +20,25 @@ import javax.swing.UIManager;
  */
 public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
+
+    private boolean isServerIdSet = false;
+    private boolean isNameSet = false;
+
     /**
      * Creates new form WatingGui
      */
     public WatingGui() {
         initComponents();
+        this.setLocationRelativeTo(null);
+        //dont start the gui with a focused textfield
         ClientGameManager.getInstance().addClientListener(this);
         /*
         this.setTitle(ClientGameManager.getInstance().getSelfPlayer().getUsername());
          */
         this.setAlwaysOnTop(true);
+        jButton1.setBackground(new java.awt.Color(0, 59, 43));
+        //set focus on login button
+        jButton1.requestFocusInWindow();
 
     }
 
@@ -97,25 +106,21 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
         jLabel_message = new javax.swing.JLabel();
-        nameField = new javax.swing.JTextField();
-        ServerIDField = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
+        nameField = new javax.swing.JTextField();
+        jLabel_Error = new javax.swing.JLabel();
+        ServerIDField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(204, 204, 255));
 
-        jLabel1.setText("nothing");
-
         jLabel_message.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel_message.setText("nothing");
 
-        nameField.setText("Name");
-
-        ServerIDField.setText("ServerID");
-
         jButton1.setBackground(new java.awt.Color(153, 153, 153));
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jButton1.setText("Login");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -123,35 +128,80 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
             }
         });
 
+        nameField.setForeground(new java.awt.Color(153, 153, 153));
+        nameField.setText("Inserisci il tuo username");
+        nameField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                nameFieldMouseClicked(evt);
+            }
+        });
+        nameField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameFieldActionPerformed(evt);
+            }
+        });
+
+        jLabel_Error.setForeground(new java.awt.Color(255, 51, 51));
+        jLabel_Error.setText("nothing");
+
+        ServerIDField.setForeground(new java.awt.Color(153, 153, 153));
+        ServerIDField.setText("ServerID");
+        ServerIDField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ServerIDFieldMouseClicked(evt);
+            }
+        });
+        ServerIDField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ServerIDFieldActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel_message, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(100, 100, 100)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(nameField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                            .addComponent(ServerIDField)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel_Error, javax.swing.GroupLayout.PREFERRED_SIZE, 401, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel_message, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(57, 57, 57)
+                .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(ServerIDField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel_Error, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(14, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel_message, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 493, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
-                        .addComponent(ServerIDField, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(nameField, javax.swing.GroupLayout.Alignment.LEADING)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 412, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel_message, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(ServerIDField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
-                .addGap(127, 127, 127))
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -161,6 +211,44 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         // TODO add your handling code here:
         tryLogin();
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFieldActionPerformed
+        System.out.println("nameFieldActionPerformed");
+
+        //remove hint from textfield, change font color to default
+        if (!isNameSet) {
+            nameField.setText("");
+            nameField.setForeground(new java.awt.Color(148, 145, 145));
+            isNameSet = true;
+        }
+
+    }//GEN-LAST:event_nameFieldActionPerformed
+
+    private void ServerIDFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ServerIDFieldActionPerformed
+
+    }//GEN-LAST:event_ServerIDFieldActionPerformed
+
+    private void nameFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_nameFieldMouseClicked
+        //remove hint from textfield, change font color to default
+        if (!isNameSet) {
+            nameField.setText("");
+            //set font bold
+            nameField.setFont(new java.awt.Font("Segoe UI", 1, 14));
+            nameField.setForeground(new java.awt.Color(0, 150, 202));
+            isNameSet = true;
+        }
+    }//GEN-LAST:event_nameFieldMouseClicked
+
+    private void ServerIDFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ServerIDFieldMouseClicked
+
+        
+        if (!isServerIdSet) {
+            ServerIDField.setText("");
+            ServerIDField.setFont(new java.awt.Font("Segoe UI", 0, 14));
+            ServerIDField.setForeground(new java.awt.Color(202, 202, 202));
+            isServerIdSet = true;
+        }
+    }//GEN-LAST:event_ServerIDFieldMouseClicked
 
     /**
      * @param args the command line arguments
@@ -205,8 +293,9 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField ServerIDField;
     private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel_Error;
     private javax.swing.JLabel jLabel_message;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField nameField;
     // End of variables declaration//GEN-END:variables
 }
