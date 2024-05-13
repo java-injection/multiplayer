@@ -96,6 +96,12 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     }
 
+    @Override
+    public void serverIsAlive(boolean isAlive) {
+        System.out.println("[DEBUG][EVENT] Server is alive: "+isAlive);
+        System.out.println("[WARNING] server alive status not yet managed on Main Gui");
+    }
+
     public void movePlayerToDirection(PlayerType playerType, Coordinates direction){
            System.out.println("[DEBUG][EVENT] Moving player to direction: "+direction);
             Player player = ClientGameManager.getInstance().getPlayerFromType(playerType);

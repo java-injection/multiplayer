@@ -105,6 +105,21 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     }
 
+    @Override
+    public void serverIsAlive(boolean isAlive) {
+        if (isAlive) {
+            ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/green.png"));
+            Image originalImage = originalIcon.getImage();
+            Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
+            jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
+        } else {
+            ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
+            Image originalImage = originalIcon.getImage();
+            Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
+            jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
+        }
+    }
+
     private void showError(String errorMessage) {
         this.jLabel_Error.setText(errorMessage);
         this.jLabel_Error.setVisible(true);

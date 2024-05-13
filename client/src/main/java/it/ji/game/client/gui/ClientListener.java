@@ -16,4 +16,6 @@ public interface ClientListener {
 
     void bulletMoved(Coordinates xy);
 
+    void serverIsAlive(boolean isAlive);
+
 }
