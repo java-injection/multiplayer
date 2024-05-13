@@ -5,19 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.ji</groupId>
-    <artifactId>multiplayer</artifactId>
+    <artifactId>game</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>utils</module>
+        <module>server</module>
+        <module>client</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>5.0.2</version> <!-- Assicurati di utilizzare l'ultima versione disponibile -->
-        </dependency>
-    </dependencies>
 </project>
