@@ -43,6 +43,31 @@ public class RedisManager {
         jedisRW.hset(key, field, value);
     }
 
+    /**
+     * Set a key with a field and a value and set the time to live
+     * @param key
+     * @param field
+     * @param value
+     * @param ttl
+     */
+    public void hset(String key, String field, String value, int ttl){
+        jedisRW.hset(key, field, value);
+        jedisRW.expire(key, ttl);
+    }
+
+    public void delete(String key){
+        jedisRW.del(key);
+    }
+
+    /**
+     *
+     * @param key
+     * @param ttl
+     */
+    public void expire(String key, int ttl){
+        jedisRW.expire(key, ttl);
+    }
+
     public Optional<String> hget(String key, String field){
         return Optional.ofNullable(jedisRW.hget(key, field));
     }

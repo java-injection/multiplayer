@@ -55,7 +55,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         this.jLabel_Error.setVisible(false);
 
         Thread t = new Thread(() -> {
-            while (!ClientGameManager.getInstance().isServerAlive()) {
+            while (true) {
                 try {
                     Thread.sleep(1000);
                     ClientGameManager.getInstance().checkServer();
@@ -120,14 +120,14 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     @Override
     public void serverIsAlive(boolean isAlive) {
         if (isAlive) {
-            System.out.println("[DEBUG][GUI] Server is alive");
+//            System.out.println("[DEBUG][GUI] Server is alive");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/green.png"));
             Image originalImage = originalIcon.getImage();
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
             jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
             jLabel_serverStatus.setText("online");
         } else {
-            System.out.println("[ERROR][GUI] Server is offline");
+//            System.out.println("[ERROR][GUI] Server is offline");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
             Image originalImage = originalIcon.getImage();
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);

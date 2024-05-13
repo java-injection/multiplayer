@@ -32,7 +32,7 @@ public class ClientGameManager implements RedisMessageListener {
 
     private boolean serverAlive = false;
 
-    public static final String GAME_NAME = "MATRICE";
+    public static final String SERVER_STATUS = "server-status";
 
     private Boolean clientAccpted = false;
 
@@ -496,7 +496,7 @@ public class ClientGameManager implements RedisMessageListener {
 
     public void checkServer() {
         System.out.println("[DEBUG] checking server");
-        final Optional<String> general = RedisManager.getInstance().hget(GAME_NAME, "GENERAL");
+        final Optional<String> general = RedisManager.getInstance().hget(SERVER_STATUS, "GENERAL");
         //check if the server is alive
         if (general.isEmpty()) {
             serverIsAlive(false);

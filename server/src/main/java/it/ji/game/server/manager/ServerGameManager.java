@@ -29,6 +29,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     private static final int PROJECTILE = 5;
     private static ServerGameManager instance = null;
     public static final String GAME_NAME = "MATRICE";
+    public static final String SERVER_STATUS = "server-status";
 
     private Map<Long, Coordinates> bulletsId = new HashMap<>();
     private String serverId;
@@ -72,6 +73,10 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     public void startServer() {
         try {
             System.out.println("[GameServer] Starting server...");
+            System.out.println("[GameServer] Cleaning up Redis instance ...");
+            RedisManager.getInstance().delete(GAME_NAME);
+            RedisManager.getInstance().delete(SERVER_STATUS);
+            System.out.println("[GameServer] Redis instance cleaned up ... OK");
             serverId = Utils.generateServerId();
             System.out.println("[GameServer] Server Id: " + serverId);
             RedisManager.getInstance().hset(GAME_NAME, serverId, String.valueOf(Status.WAITING));
@@ -148,11 +153,26 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
     //public a true value on message on game.imalive channel
     public void imalive(){
         RedisManager.getInstance().publish("game.imalive", "true");
-        RedisManager.getInstance().hset(GAME_NAME, "GENERAL", "ALIVE");
+
+        //thread that refresh each 5 second the server status
+        Thread t = new Thread(this::refreshStatus);
+        t.start();
+    }
+
+    //refresh the server status
+    public void refreshStatus(){
+        while (true){
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            RedisManager.getInstance().hset(SERVER_STATUS, "GENERAL", "ALIVE", 5);
+        }
     }
 
     public void imdead(){
-        RedisManager.getInstance().hset(GAME_NAME, "GENERAL", "DEAD");
+        RedisManager.getInstance().delete(SERVER_STATUS);
         RedisManager.getInstance().publish("game.imalive", "false");
     }
 
