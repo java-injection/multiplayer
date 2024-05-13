@@ -93,6 +93,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             //create a thread that wait for the game to start and write elapsed time each second until the game starts
 
             int elapsed = 0;
+            imalive();
             System.out.println("waiting for players");
             while (true) {
                 try {
@@ -113,9 +114,11 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
             }
             System.out.println(" ************************ Server started ************************ ");
             startGame();
+            RedisManager.getInstance().hset(GAME_NAME, "GENERAL", "ALIVE");
 
         } catch (Exception e) {
             e.printStackTrace();
+            imdead();
         }
     }
     public void setInitialPositions() {
@@ -140,6 +143,17 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
         if (player.equals(player2)) {
             localBoard[coordinates.x()][coordinates.y()] = PLAYER_2;
         }
+    }
+
+    //public a true value on message on game.imalive channel
+    public void imalive(){
+        RedisManager.getInstance().publish("game.imalive", "true");
+        RedisManager.getInstance().hset(GAME_NAME, "GENERAL", "ALIVE");
+    }
+
+    public void imdead(){
+        RedisManager.getInstance().hset(GAME_NAME, "GENERAL", "DEAD");
+        RedisManager.getInstance().publish("game.imalive", "false");
     }
 
     //todo spostare in utils

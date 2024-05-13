@@ -30,6 +30,10 @@ public class ClientGameManager implements RedisMessageListener {
     private Player selfPlayer;
     private Coordinates lastCoordinates;
 
+    private boolean serverAlive = false;
+
+    public static final String GAME_NAME = "MATRICE";
+
     private Boolean clientAccpted = false;
 
     private ClientGameManager() {
@@ -50,8 +54,8 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.hit",
                 "game.projectile",
                 "game.projectile.moved",
-                "game.bullet.remove"
-
+                "game.bullet.remove",
+                "server.imalive"
         );
     }
     public void addPlayer(Player selfPlayer) {
@@ -72,6 +76,12 @@ public class ClientGameManager implements RedisMessageListener {
             instance = new ClientGameManager();
         }
         return instance;
+    }
+
+    public void serverIsAlive(boolean alive) {
+        for (ClientListener clientListener : clientListeners) {
+            clientListener.serverIsAlive(alive);
+        }
     }
 
     public Map<Player, Coordinates> getPlayerPositions() {
@@ -124,11 +134,13 @@ public class ClientGameManager implements RedisMessageListener {
                 return;
             }
             if (isServerWaiting(serverId)) {
+                //trigger im alive
                 isNameInUse();
             }
         } catch (NameAlreadyInUse e) {
             throw new RuntimeException(e);
         } catch (ServerNotFoundException e) {
+            serverIsAlive(false);
             throw new RuntimeException(e);
         }
     }
@@ -328,6 +340,11 @@ public class ClientGameManager implements RedisMessageListener {
         if (message.channel().equals("game.projectile")){
             channelProjectileMovedOrCreated(message.message());
         }
+        if (message.channel().equals("server.imalive")){
+            System.out.println("[DEBUG] handling message in channel: <imalive>");
+            boolean alive = message.message().equals("true");
+            serverIsAlive(alive);
+        }
         if (message.channel().equals("game.bullet.remove")){
             channelProjectileRemoved(message.message());
         }
@@ -475,5 +492,25 @@ public class ClientGameManager implements RedisMessageListener {
 
     public void setSelfPlayer(Player player) {
         this.selfPlayer = player;
+    }
+
+    public void checkServer() {
+        System.out.println("[DEBUG] checking server");
+        final Optional<String> general = RedisManager.getInstance().hget(GAME_NAME, "GENERAL");
+        //check if the server is alive
+        if (general.isEmpty()) {
+            serverIsAlive(false);
+            System.out.println("[ERROR] Server is not alive");
+            return;
+        }
+        if(general.get().equals("ALIVE")){
+            serverIsAlive(true);
+            System.out.println("[DEBUG] Server is alive");
+            serverAlive = true;
+        }
+    }
+
+    public synchronized boolean isServerAlive() {
+        return serverAlive;
     }
 }

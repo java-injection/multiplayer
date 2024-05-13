@@ -25,6 +25,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     private boolean isServerIdSet = false;
     private boolean isNameSet = false;
 
+
     /**
      * Creates new form WatingGui
      */
@@ -50,9 +51,20 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         Image originalImage = originalIcon.getImage();
         Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
         jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
-
-
+        jLabel_serverStatus.setText("offline");
         this.jLabel_Error.setVisible(false);
+
+        Thread t = new Thread(() -> {
+            while (!ClientGameManager.getInstance().isServerAlive()) {
+                try {
+                    Thread.sleep(1000);
+                    ClientGameManager.getInstance().checkServer();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
 
     }
 
@@ -108,16 +120,22 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     @Override
     public void serverIsAlive(boolean isAlive) {
         if (isAlive) {
+            System.out.println("[DEBUG][GUI] Server is alive");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/green.png"));
             Image originalImage = originalIcon.getImage();
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
             jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
+            jLabel_serverStatus.setText("online");
         } else {
+            System.out.println("[ERROR][GUI] Server is offline");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
             Image originalImage = originalIcon.getImage();
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
             jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
+            jLabel_serverStatus.setText("offline");
         }
+        //REPAINT
+        this.repaint();
     }
 
     private void showError(String errorMessage) {
