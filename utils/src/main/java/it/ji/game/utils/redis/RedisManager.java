@@ -48,7 +48,7 @@ public class RedisManager {
      * @param key
      * @param field
      * @param value
-     * @param ttl
+     * @param ttl time to live in seconds
      */
     public void hset(String key, String field, String value, int ttl){
         jedisRW.hset(key, field, value);

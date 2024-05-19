@@ -14,17 +14,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-
         startWaitingGui();
-       /* Scanner scanner = new Scanner(System.in);
-        System.out.println("Starting client...");
-        System.out.println("insert server id: ");
-        String serverId = scanner.nextLine();
-        ClientGameManager.getInstance().setServerId(serverId);
-        System.out.println("insert username: ");
-        String username = scanner.nextLine();
-        ClientGameManager.getInstance().addPlayer(new Player(username, PlayerType.SELF));*/
-
     }
      public  static void startGui() {
          try {
