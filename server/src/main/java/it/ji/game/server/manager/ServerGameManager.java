@@ -152,7 +152,7 @@ public class ServerGameManager implements RedisMessageListener, TurretListener {
 
     //public a true value on message on game.imalive channel
     public void imalive(){
-        RedisManager.getInstance().publish("game.imalive", "true");
+        RedisManager.getInstance().publish("game.imalive", "true"+":"+serverId);
 
         //thread that refresh each 5 second the server status
         Thread t = new Thread(this::refreshStatus);

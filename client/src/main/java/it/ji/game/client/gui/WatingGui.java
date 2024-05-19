@@ -15,6 +15,7 @@ import it.ji.game.utils.logic.PlayerType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Optional;
 
 /**
  * @author sommovir
@@ -37,15 +38,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         this.setLocationRelativeTo(null);
         //dont start the gui with a focused textfield
         ClientGameManager.getInstance().addClientListener(this);
-        /*
-        this.setTitle(ClientGameManager.getInstance().getSelfPlayer().getUsername());
-         */
         this.setAlwaysOnTop(true);
         jButton1.setBackground(new java.awt.Color(0, 59, 43));
         this.jLabel_message.setText("Insert your username and server id");
         //set focus on login button
         jButton1.requestFocusInWindow();
-
         //set the status label with no text and red icon from it.ji.game.client.images / red.png
         ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
         Image originalImage = originalIcon.getImage();
@@ -118,14 +115,14 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     }
 
     @Override
-    public void serverIsAlive(boolean isAlive) {
+    public void serverIsAlive(boolean isAlive, Optional<String> serverId) {
         if (isAlive) {
 //            System.out.println("[DEBUG][GUI] Server is alive");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/green.png"));
             Image originalImage = originalIcon.getImage();
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
             jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
-            jLabel_serverStatus.setText("online");
+            jLabel_serverStatus.setText("online"+":"+serverId.get());
         } else {
 //            System.out.println("[ERROR][GUI] Server is offline");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));

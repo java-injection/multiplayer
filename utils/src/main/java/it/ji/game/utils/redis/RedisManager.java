@@ -4,10 +4,7 @@ package it.ji.game.utils.redis;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -70,6 +67,10 @@ public class RedisManager {
 
     public Optional<String> hget(String key, String field){
         return Optional.ofNullable(jedisRW.hget(key, field));
+    }
+    public Map<String, String> hgetAll(String key){
+        Map<String, String> hash = jedisRW.hgetAll(key);
+        return hash;
     }
 
     public void publish(String channel, String message){

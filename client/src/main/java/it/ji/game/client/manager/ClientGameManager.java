@@ -78,9 +78,10 @@ public class ClientGameManager implements RedisMessageListener {
         return instance;
     }
 
-    public void serverIsAlive(boolean alive) {
+    public void serverIsAlive(boolean alive, Optional<String> serverId){
+
         for (ClientListener clientListener : clientListeners) {
-            clientListener.serverIsAlive(alive);
+            clientListener.serverIsAlive(alive, serverId);
         }
     }
 
@@ -140,7 +141,7 @@ public class ClientGameManager implements RedisMessageListener {
         } catch (NameAlreadyInUse e) {
             throw new RuntimeException(e);
         } catch (ServerNotFoundException e) {
-            serverIsAlive(false);
+            serverIsAlive(false,null);
             throw new RuntimeException(e);
         }
     }
@@ -342,8 +343,13 @@ public class ClientGameManager implements RedisMessageListener {
         }
         if (message.channel().equals("server.imalive")){
             System.out.println("[DEBUG] handling message in channel: <imalive>");
-            boolean alive = message.message().equals("true");
-            serverIsAlive(alive);
+            String[] split = message.message().split(":");
+
+            boolean alive = split[0].equals("true");
+            if (alive) {
+                Optional<String> serverId = Optional.of(split[1]);
+                serverIsAlive(alive, serverId);
+            }
         }
         if (message.channel().equals("game.bullet.remove")){
             channelProjectileRemoved(message.message());
@@ -499,15 +505,22 @@ public class ClientGameManager implements RedisMessageListener {
         final Optional<String> general = RedisManager.getInstance().hget(SERVER_STATUS, "GENERAL");
         //check if the server is alive
         if (general.isEmpty()) {
-            serverIsAlive(false);
+            serverIsAlive(false,Optional.empty());
             System.out.println("[ERROR] Server is not alive");
-            return;
+            return ;
         }
         if(general.get().equals("ALIVE")){
-            serverIsAlive(true);
             System.out.println("[DEBUG] Server is alive");
             serverAlive = true;
+            Map<String, String> matrice = RedisManager.getInstance().hgetAll("MATRICE");
+            for (Map.Entry<String, String> stringStringEntry : matrice.entrySet()) {
+                if (stringStringEntry.getValue().equals("WAITING")){
+                    serverIsAlive(true, Optional.of(stringStringEntry.getKey()));
+                    return;
+                }
+            }
         }
+        serverIsAlive(false, Optional.empty());
     }
 
     public synchronized boolean isServerAlive() {

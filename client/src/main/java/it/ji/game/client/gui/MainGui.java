@@ -11,6 +11,7 @@ import it.ji.game.utils.logic.PlayerType;
 import it.ji.game.utils.settings.Settings;
 
 import java.awt.event.KeyEvent;
+import java.util.Optional;
 
 /**
  *
@@ -97,7 +98,7 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
     }
 
     @Override
-    public void serverIsAlive(boolean isAlive) {
+    public void serverIsAlive(boolean isAlive, Optional<String> serverID) {
         System.out.println("[DEBUG][EVENT] Server is alive: "+isAlive);
         System.out.println("[WARNING] server alive status not yet managed on Main Gui");
     }

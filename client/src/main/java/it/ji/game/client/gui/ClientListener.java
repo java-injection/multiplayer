@@ -3,6 +3,8 @@ package it.ji.game.client.gui;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
 
+import java.util.Optional;
+
 public interface ClientListener {
     void userAccepted(String serverId , String username);
 
@@ -16,6 +18,6 @@ public interface ClientListener {
 
     void bulletMoved(Coordinates xy);
 
-    void serverIsAlive(boolean isAlive);
+    void serverIsAlive(boolean isAlive, Optional<String> serverId);
 
 }
