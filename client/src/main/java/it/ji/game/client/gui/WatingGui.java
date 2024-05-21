@@ -123,6 +123,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
             Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
             jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
             jLabel_serverStatus.setText("online"+":"+serverId.get());
+            ServerIDField.setText(serverId.get());
         } else {
 //            System.out.println("[ERROR][GUI] Server is offline");
             ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
@@ -133,6 +134,11 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         }
         //REPAINT
         this.repaint();
+    }
+
+    @Override
+    public void healthChanged(PlayerType playerType) {
+
     }
 
     private void showError(String errorMessage) {

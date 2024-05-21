@@ -19,6 +19,8 @@ public class Logger {
         }
     }
 
+
+
     public static void setUser(String user) {
         Logger.user = user;
     }

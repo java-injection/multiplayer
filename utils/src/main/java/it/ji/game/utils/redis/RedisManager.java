@@ -114,8 +114,8 @@ public class RedisManager {
     }
 
     public void shutdown() {
-        jedisBroker.shutdown();
-        jedisRW.shutdown();
+        /*jedisBroker.shutdown();
+        jedisRW.shutdown();*/
         jedisBroker.close();
         jedisRW.close();
     }

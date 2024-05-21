@@ -55,7 +55,8 @@ public class ClientGameManager implements RedisMessageListener {
                 "game.projectile",
                 "game.projectile.moved",
                 "game.bullet.remove",
-                "server.imalive"
+                "server.imalive",
+                "game.end"
         );
     }
     public void addPlayer(Player selfPlayer) {
@@ -334,8 +335,10 @@ public class ClientGameManager implements RedisMessageListener {
             System.out.println("[DEBUG] Server hit player: " + messageUsername);
             if (messageUsername.equals(getSelfPlayer().getUsername())) {
                 getSelfPlayer().hit(Integer.parseInt(messageDamage));
+                clientListeners.forEach(listener -> listener.healthChanged(PlayerType.SELF));
             } else {
                 getEnemyPlayer().hit(Integer.parseInt(messageDamage));
+                clientListeners.forEach(listener -> listener.healthChanged(PlayerType.ENEMY));
             }
         }
         if (message.channel().equals("game.projectile")){
@@ -353,6 +356,17 @@ public class ClientGameManager implements RedisMessageListener {
         }
         if (message.channel().equals("game.bullet.remove")){
             channelProjectileRemoved(message.message());
+        }
+        if (message.channel().equals("game.end")){
+            System.out.println("[DEBUG] handling message in channel: <game.end>");
+            String[] split = message.message().split(":");
+            String messageServerId = split[0];
+            if (!messageServerId.equals(serverId)){
+                System.out.println("[DEBUG] ServerId does not match");
+                return;
+            }
+            System.out.println("[DEBUG] Server ended game for serverId: " + serverId);
+            clientListeners.forEach(listener -> listener.gameEnded(serverId));
         }
 
     }
@@ -525,5 +539,17 @@ public class ClientGameManager implements RedisMessageListener {
 
     public synchronized boolean isServerAlive() {
         return serverAlive;
+    }
+
+    public void reset() {
+        this.serverId = null;
+        this.bulletsId = new HashMap<>();
+        this.localBoard = new SingleCellPanel[Settings.getInstance().getHeight()][Settings.getInstance().getWitdh()];
+        this.playerPositions = new HashMap<>();
+        this.clientListeners = new CopyOnWriteArrayList<>();
+        this.selfPlayer = null;
+        this.lastCoordinates = null;
+        this.serverAlive = false;
+        this.clientAccpted = false;
     }
 }

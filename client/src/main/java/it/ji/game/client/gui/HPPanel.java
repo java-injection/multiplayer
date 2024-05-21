@@ -4,6 +4,8 @@
  */
 package it.ji.game.client.gui;
 
+import it.ji.game.utils.logic.PlayerType;
+
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -12,13 +14,17 @@ import java.awt.Graphics;
  * @author sommovir
  */
 public class HPPanel extends javax.swing.JPanel {
-
+    private PlayerType playerType;
     private int hp = 100;
     /**
      * Creates new form HPPanel
      */
     public HPPanel() {
         initComponents();
+    }
+    public HPPanel(PlayerType playerType) {
+        initComponents();
+        this.playerType = playerType;
     }
     
     public int getHp(){
@@ -41,11 +47,16 @@ public class HPPanel extends javax.swing.JPanel {
         int greenWidth = (int) ((hp / 100.0) * panelWidth);
 
         // Draw the green part
-        g.setColor(Color.GREEN);
-        g.fillRect(0, 0, greenWidth, panelHeight);
-
+        if (playerType == PlayerType.ENEMY) {
+            g.setColor(Color.RED);
+            g.fillRect(0, 0, greenWidth, panelHeight);
+        }
+        if (playerType == PlayerType.SELF) {
+            g.setColor(Color.GREEN);
+            g.fillRect(0, 0, greenWidth, panelHeight);
+        }
         // Draw the red part
-        g.setColor(Color.RED);
+        g.setColor(Color.GRAY);
         g.fillRect(greenWidth, 0, panelWidth - greenWidth, panelHeight);
     }
     

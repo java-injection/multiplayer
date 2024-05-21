@@ -2,6 +2,7 @@ package it.ji.game.client.gui;
 
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
+import it.ji.game.utils.logic.PlayerType;
 
 import java.util.Optional;
 
@@ -20,4 +21,5 @@ public interface ClientListener {
 
     void serverIsAlive(boolean isAlive, Optional<String> serverId);
 
+    void healthChanged(PlayerType playerType);
 }
