@@ -12,7 +12,7 @@ public interface ClientListener {
     void userRejected(String serverId , String username);
     void gameStarted(String serverId);
 
-    void gameEnded(String serverId);
+    void gameEnded(String playerWon);
     void positionChanged(String username, Coordinates coordinates );
 
     void turretPlaced(Player player, Coordinates xy);

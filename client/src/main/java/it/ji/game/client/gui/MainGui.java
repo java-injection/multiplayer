@@ -103,8 +103,18 @@ public class MainGui extends javax.swing.JFrame implements ClientListener {
 
     @Override
     public void serverIsAlive(boolean isAlive, Optional<String> serverID) {
-        System.out.println("[DEBUG][EVENT] Server is alive: "+isAlive);
-        System.out.println("[WARNING] server alive status not yet managed on Main Gui");
+        /*System.out.println("[DEBUG][EVENT] Server is alive: "+isAlive);
+        System.out.println("[WARNING] server alive status not yet managed on Main Gui");*/
+
+        if (!isAlive){
+            this.setVisible(false);
+            ClientGameManager.getInstance().reset();
+            java.awt.EventQueue.invokeLater(() ->
+                    new WatingGui("Server Crashed").setVisible(true)
+
+            );
+            this.dispose();
+        }
     }
 
     @Override

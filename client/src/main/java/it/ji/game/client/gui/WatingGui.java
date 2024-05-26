@@ -7,7 +7,6 @@ package it.ji.game.client.gui;
 import com.formdev.flatlaf.FlatDarkLaf;
 import it.ji.game.client.Main;
 import it.ji.game.client.exceptions.NameAlreadyInUse;
-import it.ji.game.client.exceptions.ServerNotFoundException;
 import it.ji.game.client.manager.ClientGameManager;
 import it.ji.game.utils.logic.Coordinates;
 import it.ji.game.utils.logic.Player;
@@ -15,6 +14,7 @@ import it.ji.game.utils.logic.PlayerType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -33,7 +33,6 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
     public WatingGui() {
         double v = Math.random() * 20;
         this.setTitle(v+"");
-        System.out.println(v);
         initComponents();
         this.setLocationRelativeTo(null);
         //dont start the gui with a focused textfield
@@ -44,7 +43,7 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
         //set focus on login button
         jButton1.requestFocusInWindow();
         //set the status label with no text and red icon from it.ji.game.client.images / red.png
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/it/ji/game/client/images/red.png"));
+        ImageIcon originalIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/it/ji/game/client/images/red.png")));
         Image originalImage = originalIcon.getImage();
         Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
         jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
@@ -65,11 +64,49 @@ public class WatingGui extends javax.swing.JFrame implements ClientListener {
 
     }
 
+    public WatingGui(String message) {
+        double v = Math.random() * 20;
+        this.setTitle(v+"");
+        initComponents();
+        this.setLocationRelativeTo(null);
+        //dont start the gui with a focused textfield
+        ClientGameManager.getInstance().addClientListener(this);
+        this.setAlwaysOnTop(true);
+        jButton1.setBackground(new java.awt.Color(0, 59, 43));
+        this.jLabel_message.setText("Insert your username and server id");
+        this.jLabel_Error.setText(message);
+        //set focus on login button
+        jButton1.requestFocusInWindow();
+        //set the status label with no text and red icon from it.ji.game.client.images / red.png
+        ImageIcon originalIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/it/ji/game/client/images/red.png")));
+        Image originalImage = originalIcon.getImage();
+        Image resizedImage = originalImage.getScaledInstance(12, 12, java.awt.Image.SCALE_SMOOTH);
+        jLabel_serverStatus.setIcon(new ImageIcon(resizedImage));
+        jLabel_serverStatus.setText("offline");
+        this.jLabel_Error.setVisible(false);
+
+        Thread t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                    ClientGameManager.getInstance().checkServer();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+    }
+
     public void tryLogin() {
         this.jLabel_Error.setText("");
         ClientGameManager.getInstance().setServerId(ServerIDField.getText());
         ClientGameManager.getInstance().setSelfPlayer(new Player(nameField.getText(), PlayerType.SELF));
-        ClientGameManager.getInstance().requestToStartClient();
+        try {
+            ClientGameManager.getInstance().requestToStartClient();
+        } catch (NameAlreadyInUse e) {
+            this.jLabel_Error.setText("Name Already in use");
+        }
     }
 
     @Override
