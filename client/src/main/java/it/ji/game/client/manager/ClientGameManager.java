@@ -121,9 +121,9 @@ public class ClientGameManager implements RedisMessageListener {
 
     private boolean canStart() {
         //print contents of the map and everything that could set can start to false
-        LoggerG.setMessage("[DEBUG] playerPositions: " + playerPositions).system();
-        LoggerG.setMessage("[DEBUG] serverId: " + serverId).system();
-        LoggerG.setMessage("[DEBUG] playerPositions.size(): " + playerPositions.size()).system();
+        LoggerG.setMessage("[DEBUG] playerPositions: " + playerPositions).system().system();
+        LoggerG.setMessage("[DEBUG] serverId: " + serverId).system().system();
+        LoggerG.setMessage("[DEBUG] playerPositions.size(): " + playerPositions.size()).system().system();
         return playerPositions.size() == 2 &&
                 serverId != null &&
                 !serverId.isBlank() &&
@@ -151,10 +151,10 @@ public class ClientGameManager implements RedisMessageListener {
     public void startClient() throws ServerNotFoundException {
         playerPositions.keySet().stream().filter(player -> player.getType() == PlayerType.SELF).findFirst().ifPresentOrElse(player -> {
             RedisManager.getInstance().publish("login", serverId + ":" + player.getUsername());
-            }, () -> {
-                throw new IllegalArgumentException("Server is not waiting for players");
-            });
-            LoggerG.setMessage("Waiting for the server to start the game ..").system();
+        }, () -> {
+            throw new IllegalArgumentException("Server is not waiting for players");
+        });
+        LoggerG.setMessage("Waiting for the server to start the game ..").system().system();
     }
 
     private void isNameInUse() throws NameAlreadyInUse {
@@ -179,20 +179,20 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     private void initPositions(RedisMessage message) {
-        LoggerG.setMessage("[DEBUG] handling message in channel: <game.init>").system();
+        LoggerG.setMessage("[DEBUG] handling message in channel: <game.init>").system().system();
         String channelMessage = message.message();
         String[] split = channelMessage.split(":");
         String initMessageServerId = split[0];
-        LoggerG.setMessage("[DEBUG] initMessageServerId: [" + initMessageServerId+"]").system();
+        LoggerG.setMessage("[DEBUG] initMessageServerId: [" + initMessageServerId+"]").system().system();
         String initMessageUsername = split[1];
-        LoggerG.setMessage("[DEBUG] initMessageUsername: [" + initMessageUsername+"]").system();
+        LoggerG.setMessage("[DEBUG] initMessageUsername: [" + initMessageUsername+"]").system().system();
         String initMessagePosition = split[2];
         String[] splitCoordinates = initMessagePosition.split(",");
-        LoggerG.setMessage("[DEBUG] splitCoordinates: [" + splitCoordinates[0] + "] and [" + splitCoordinates[1] + "]").system();
+        LoggerG.setMessage("[DEBUG] splitCoordinates: [" + splitCoordinates[0] + "] and [" + splitCoordinates[1] + "]").system().system();
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
         if (!initMessageServerId.equals(serverId)){
             //todo definire costante per ServerID does not match
-            LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+            LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
             return;
         }
         Player playerFromType = getPlayerFromType(PlayerType.SELF);
@@ -201,7 +201,7 @@ public class ClientGameManager implements RedisMessageListener {
         } else {
             setLocalBoardCoordinates(xy, PlayerType.ENEMY);
         }
-        LoggerG.setMessage("[DEBUG] Server initialized game for serverId: " + serverId).system();
+        LoggerG.setMessage("[DEBUG] Server initialized game for serverId: " + serverId).system().system();
 
     }
 
@@ -211,29 +211,29 @@ public class ClientGameManager implements RedisMessageListener {
     @Override
     public void onMessage(RedisMessage message) {
         if (message == null || message.message() == null || message.channel() == null){
-            LoggerG.setMessage("[DEBUG] message is null or message.message() is null or message.channel() is null").system();
+            LoggerG.setMessage("[DEBUG] message is null or message.message() is null or message.channel() is null").system().system();
             return;
         }
         if (selfPlayer == null || serverId == null) {
-            LoggerG.setMessage("[DEBUG] selfPlayer is null").system();
+            LoggerG.setMessage("[DEBUG] selfPlayer is null").system().system();
             return;
         }
-        LoggerG.setMessage("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId).system();
+        LoggerG.setMessage("Received message: [" + message.message() + "] from channel: " + message.channel() + " serverId: " + serverId).system().system();
         if (message.channel().equals("login.response.player")) {
             String[] serverMessage = message.message().split(":");
-            LoggerG.setMessage("[debug] "+message.message()).system();
+            LoggerG.setMessage("[debug] "+message.message()).system().system();
             if (serverMessage[0].equals(serverId)) {
                 try {
-                if (serverMessage.length <2 || !serverMessage[1].equals(getSelfPlayer().getUsername())){
-                    ClientGameManager.getInstance().addPlayer(selfPlayer);
-                    LoggerG.setMessage("[DEBUG] STO STARTANDO IL CLIENT").system();
-                    startClient();
-                }else{
-                    LoggerG.setMessage("name already in use").system();
-                    for (ClientListener clientListener : clientListeners) {
-                        clientListener.userRejected(serverId, getSelfPlayer().getUsername());
+                    if (serverMessage.length <2 || !serverMessage[1].equals(getSelfPlayer().getUsername())){
+                        ClientGameManager.getInstance().addPlayer(selfPlayer);
+                        LoggerG.setMessage("[DEBUG] STO STARTANDO IL CLIENT").system().system();
+                        startClient();
+                    }else{
+                        LoggerG.setMessage("name already in use").system().system();
+                        for (ClientListener clientListener : clientListeners) {
+                            clientListener.userRejected(serverId, getSelfPlayer().getUsername());
+                        }
                     }
-                }
                 } catch (ServerNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -241,31 +241,31 @@ public class ClientGameManager implements RedisMessageListener {
         }
         if (message.channel().equals("login.status.accepted")) {
             this.clientAccpted = true;
-            LoggerG.setMessage("[DEBUG] handling message in channel: <login.status.accepted>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <login.status.accepted>").system().system();
             String[] split = message.message().split(":");
-            LoggerG.setMessage("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]").system();
+            LoggerG.setMessage("[DEBUG] split: [" + split[0] + "] and [" + split[1] + "]").system().system();
             String messageServerId = split[0];
             String messageUsername = split[1];
             if (messageServerId.equals(serverId) && messageUsername.equals(getSelfPlayer().getUsername())) {
-                LoggerG.setMessage("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId).system();
+                LoggerG.setMessage("[DEBUG] Server accepted user: " + messageUsername + " serverId: " + messageServerId).system().system();
                 clientListeners.forEach(listener -> listener.userAccepted(messageServerId, messageUsername));
             }
         }
         if (message.channel().equals("game.start")) {
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.start>").system();
-            LoggerG.setMessage("[DEBUG] message: " + message.message()).system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.start>").system().system();
+            LoggerG.setMessage("[DEBUG] message: " + message.message()).system().system();
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messagePlayer1 = split[1];
             String messagePlayer2 = split[2];
             if (messageServerId.equals(serverId)) {
-                LoggerG.setMessage("[DEBUG] Server started game for serverId: " + serverId).system();
+                LoggerG.setMessage("[DEBUG] Server started game for serverId: " + serverId).system().system();
                 playerPositions.entrySet().stream().findFirst().ifPresent((entry) -> {
                     if (entry.getKey().getUsername().equals(messagePlayer1)) {
-                        LoggerG.setMessage("[DEBUG] IL NEMICO è " + messagePlayer2).system();
+                        LoggerG.setMessage("[DEBUG] IL NEMICO è " + messagePlayer2).system().system();
                         playerPositions.put(new Player(messagePlayer2, PlayerType.ENEMY), null);
                     } else if (entry.getKey().getUsername().equals(messagePlayer2)) {
-                        LoggerG.setMessage("[DEBUG] IL NEMICO è " + messagePlayer1).system();
+                        LoggerG.setMessage("[DEBUG] IL NEMICO è " + messagePlayer1).system().system();
                         playerPositions.put(new Player(messagePlayer1, PlayerType.ENEMY), null);
                     }
                 });
@@ -274,36 +274,36 @@ public class ClientGameManager implements RedisMessageListener {
                 }
                 clientListeners.forEach(listener -> listener.gameStarted(serverId));
             }
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.start>"+message.message()).system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.start>"+message.message()).system().system();
         }
         if (message.channel().equals("game.init")) {
 
             initPositions(message);
         }
         if (message.channel().equals("game.move.client.accepted")){
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.move.client>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.move.client>").system().system();
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageUsername = split[1];
             String messagePosition = split[2];
             if (messageUsername.equals(getSelfPlayer().getUsername())) {
                 updateLocalBoardByUsername(new Coordinates(Integer.parseInt(messagePosition.split(",")[0]), Integer.parseInt(messagePosition.split(",")[1])), getSelfPlayer());
-                LoggerG.setMessage("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition).system();
+                LoggerG.setMessage("[DEBUG] IGNORING SELF PLAYER: " + messageUsername + " to position: " + messagePosition).system().system();
                 return;
             }
             String[] splitCoordinates = messagePosition.split(",");
             Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
             if (!messageServerId.equals(serverId)){
-                LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+                LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
                 return;
             }
-            LoggerG.setMessage("[DEBUG] Server moved player: " + messageUsername + " to position: " + xy).system();
+            LoggerG.setMessage("[DEBUG] Server moved player: " + messageUsername + " to position: " + xy).system().system();
             for (ClientListener clientListener : clientListeners) {
                 clientListener.positionChanged(messageUsername, xy);
             }
         }
         if (message.channel().equals("game.turret.client.accepted")) {
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.turret.client.accepted>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.turret.client.accepted>").system().system();
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageUsername = split[1];
@@ -311,10 +311,10 @@ public class ClientGameManager implements RedisMessageListener {
             String[] splitCoordinates = messagePosition.split(",");
             Coordinates xy = new Coordinates(Integer.parseInt(splitCoordinates[0]), Integer.parseInt(splitCoordinates[1]));
             if (!messageServerId.equals(serverId)){
-                LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+                LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
                 return;
             }
-            LoggerG.setMessage("[DEBUG] Server placed turret for player: " + messageUsername + " at position: " + xy).system();
+            LoggerG.setMessage("[DEBUG] Server placed turret for player: " + messageUsername + " at position: " + xy).system().system();
             //get the player from the username
             if (messageUsername.matches(getSelfPlayer().getUsername())) {
                 localBoard[xy.x()][xy.y()].setBackground(Color.BLUE);
@@ -325,16 +325,16 @@ public class ClientGameManager implements RedisMessageListener {
             }
         }
         if (message.channel().equals("game.hit")) {
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.hit>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.hit>").system().system();
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageDamage = split[1];
             String messageUsername = split[2];
             if (!messageServerId.equals(serverId)){
-                LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+                LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
                 return;
             }
-            LoggerG.setMessage("[DEBUG] Server hit player: " + messageUsername).system();
+            LoggerG.setMessage("[DEBUG] Server hit player: " + messageUsername).system().system();
             if (messageUsername.equals(getSelfPlayer().getUsername())) {
                 getSelfPlayer().hit(Integer.parseInt(messageDamage));
                 clientListeners.forEach(listener -> listener.healthChanged(PlayerType.SELF));
@@ -347,55 +347,55 @@ public class ClientGameManager implements RedisMessageListener {
             channelProjectileMovedOrCreated(message.message());
         }
         if (message.channel().equals("server.imalive")){
-            LoggerG.setMessage("[DEBUG] handling message in channel: <imalive>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <imalive>").system().system();
             String[] split = message.message().split(":");
 
             boolean alive = split[0].equals("true");
             if (alive) {
-                Optional<String> serverId = Optional.of(split[1]);
-                serverIsAlive(alive, serverId);
+                Optional<String> optionalServerId = Optional.of(split[1]);
+                serverIsAlive(alive, optionalServerId);
             }
         }
         if (message.channel().equals("game.bullet.remove")){
             channelProjectileRemoved(message.message());
         }
         if (message.channel().equals("game.end")){
-            LoggerG.setMessage("[DEBUG] handling message in channel: <game.end>").system();
+            LoggerG.setMessage("[DEBUG] handling message in channel: <game.end>").system().system();
             String[] split = message.message().split(":");
             String messageServerId = split[0];
             String messageWinnerPlayer = split[1];
             if (!messageServerId.equals(serverId)){
-                LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+                LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
                 return;
             }
             if (messageWinnerPlayer.equals(getSelfPlayer().getUsername())) {
-                LoggerG.setMessage("[DEBUG] Server ended, winner: " + messageWinnerPlayer).system();
+                LoggerG.setMessage("[DEBUG] Server ended, winner: " + messageWinnerPlayer).system().system();
                 clientListeners.forEach(listener -> listener.gameEnded(selfPlayer.getUsername()));
             }
-            LoggerG.setMessage("[DEBUG] Server ended game for serverId: " + serverId).system();
+            LoggerG.setMessage("[DEBUG] Server ended game for serverId: " + serverId).system().system();
             clientListeners.forEach(listener -> listener.gameEnded(serverId));
         }
 
     }
 
     private void channelProjectileRemoved(String message) {
-        LoggerG.setMessage("[DEBUG] handling message in channel: <game.bullet.remove>").system();
+        LoggerG.setMessage("[DEBUG] handling message in channel: <game.bullet.remove>").system().system();
         String[] split = message.split(":");
         if (split.length == 2) {
             String messageServerID = split[0];
             String messageBulletID = split[1];
             if (!messageServerID.equals(serverId)){
-                LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+                LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
                 return;
             }
-            LoggerG.setMessage("[DEBUG] Server DELETED projectile with id: " + messageBulletID).system();
+            LoggerG.setMessage("[DEBUG] Server DELETED projectile with id: " + messageBulletID).system().system();
             Coordinates coordinates = bulletsId.get(Long.parseLong(messageBulletID));
             localBoard[coordinates.x()][coordinates.y()].setBackground(Color.WHITE);
             return;
         }
         String messageServerID = split[0];
         if (!messageServerID.equals(serverId)){
-            LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+            LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
             return;
         }
         String messageBulletId = split[1];
@@ -406,14 +406,14 @@ public class ClientGameManager implements RedisMessageListener {
         Coordinates messageCoordinates = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
         bulletsId.remove(Long.parseLong(messageBulletId));
         localBoard[messageCoordinates.x()][messageCoordinates.y()].setBackground(Color.WHITE);
-        LoggerG.setMessage("[DEBUG] Server removed projectile at position: " + messageCoordinates).system();
+        LoggerG.setMessage("[DEBUG] Server removed projectile at position: " + messageCoordinates).system().system();
     }
 
     private void channelProjectileMovedOrCreated(String message){
         String[] split = message.split(":");
         String messageServerID = split[0];
         if (!messageServerID.equals(serverId)){
-            LoggerG.setMessage("[DEBUG] ServerId does not match").system();
+            LoggerG.setMessage("[DEBUG] ServerId does not match").system().system();
             return;
         }
         String messageBulletId = split[1];
@@ -422,43 +422,43 @@ public class ClientGameManager implements RedisMessageListener {
         messageCoords = messageCoords.replace(").system();", "");
         String[] splitCoords = messageCoords.split(",");
         if (bulletsId.get(Long.parseLong(messageBulletId)) == null) {
-            LoggerG.setMessage("[DEBUG] Server created projectile at position: " + splitCoords[0] + " " + splitCoords[1]).system();
+            LoggerG.setMessage("[DEBUG] Server created projectile at position: " + splitCoords[0] + " " + splitCoords[1]).system().system();
             bulletsId.put(Long.parseLong(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
         else {
-            LoggerG.setMessage("[DEBUG] Server moved projectile at position: " + splitCoords[0] + " " + splitCoords[1]).system();
+            LoggerG.setMessage("[DEBUG] Server moved projectile at position: " + splitCoords[0] + " " + splitCoords[1]).system().system();
             Coordinates previousCoordinates = bulletsId.get(Long.parseLong(messageBulletId));
             localBoard[previousCoordinates.x()][previousCoordinates.y()].setBackground(Color.WHITE);
             bulletsId.put(Long.parseLong(messageBulletId),new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1])));
         }
 
         Coordinates xy = new Coordinates(Integer.parseInt(splitCoords[0]), Integer.parseInt(splitCoords[1]));
-        LoggerG.setMessage("[DEBUG] Server moved projectile to position: " + xy).system();
+        LoggerG.setMessage("[DEBUG] Server moved projectile to position: " + xy).system().system();
         localBoard[xy.x()][xy.y()].setBackground(Color.YELLOW);
     }
     public void updateLocalBoardByUsername(Coordinates coordinates, Player player) {
-        LoggerG.setMessage("[DEBUG] updating local board for player: " + player.getUsername() + " at position: " + coordinates).system();
+        LoggerG.setMessage("[DEBUG] updating local board for player: " + player.getUsername() + " at position: " + coordinates).system().system();
         Coordinates playerCoordinates = playerPositions.get(player);
         if (player.getUsername().equals(getSelfPlayer().getUsername())) {
             try {
                 setLocalBoardCoordinates(coordinates, PlayerType.SELF);
             }catch (ArrayIndexOutOfBoundsException e) {
-                LoggerG.setMessage("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage()).system();
+                LoggerG.setMessage("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage()).system().system();
                 playerPositions.put(player, playerCoordinates);
             }
         } else if (player.getUsername().equals(getEnemyPlayer().getUsername())) {
             try {
                 setLocalBoardCoordinates(coordinates, PlayerType.ENEMY);
             }catch (ArrayIndexOutOfBoundsException e) {
-                LoggerG.setMessage("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage()).system();
+                LoggerG.setMessage("[DEBUG] ArrayIndexOutOfBoundsException: " + e.getMessage()).system().system();
                 playerPositions.put(player, playerCoordinates);
             }
         }
     }
 
     private void setLocalBoardCoordinates(Coordinates coordinates, PlayerType playerType) throws ArrayIndexOutOfBoundsException{
-       Player player = playerPositions.keySet().stream().filter(p -> p.getType() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
-       Coordinates previousCoordinates = playerPositions.get(player);
+        Player player = playerPositions.keySet().stream().filter(p -> p.getType() == playerType).findFirst().orElseThrow(() -> new IllegalArgumentException("Player not found"));
+        Coordinates previousCoordinates = playerPositions.get(player);
         if (playerType == PlayerType.SELF) {
             localBoard[coordinates.x()][coordinates.y()].setBackground(Color.GREEN);
             this.lastCoordinates = previousCoordinates;
@@ -478,7 +478,7 @@ public class ClientGameManager implements RedisMessageListener {
 
     public void requestToUpdatePosition(Coordinates coordinates, Player player) {
         if (coordinates.x()<0 || coordinates.y()<0 || coordinates.x()>=Settings.getInstance().getHeight() || coordinates.y()>=Settings.getInstance().getWitdh()){
-            LoggerG.setMessage("[DEBUG] Coordinates out of bounds").system();
+            LoggerG.setMessage("[DEBUG] Coordinates out of bounds").system().system();
             return;
         }
         RedisManager.getInstance().publish("game.move.server", serverId + ":" + player.getUsername() + ":" + coordinates.x() + "," + coordinates.y());
@@ -506,15 +506,15 @@ public class ClientGameManager implements RedisMessageListener {
         return Direction.NONE;
     }
     public void requestToPlaceTurret(Coordinates coordinates) {
-        LoggerG.setMessage("[DEBUG] requesting to place turret at coordinates: " + coordinates).system();
+        LoggerG.setMessage("[DEBUG] requesting to place turret at coordinates: " + coordinates).system().system();
         //todo implementare il controllo per vedere se il giocatore ha già un turret
         /*Optional<Items> items = playerItems.stream().filter(item -> item instanceof Turret).findFirst();
         if (items.isEmpty()) {
-            LoggerG.setMessage("[DEBUG] Turret not found").system();
+            LoggerG.setMessage("[DEBUG] Turret not found").system().system();
             return;
         }*/
         RedisManager.getInstance().publish("game.turret.server",
-                 serverId+":"+selfPlayer.getUsername()+":"+coordinates.x() + "," + coordinates.y());
+                serverId+":"+selfPlayer.getUsername()+":"+coordinates.x() + "," + coordinates.y());
     }
 
     public void setSelfPlayer(Player player) {
@@ -522,16 +522,16 @@ public class ClientGameManager implements RedisMessageListener {
     }
 
     public void checkServer() {
-        LoggerG.setMessage("[DEBUG] checking server").system();
+        LoggerG.setMessage("[DEBUG] checking server").system().system();
         final Optional<String> general = RedisManager.getInstance().hget(SERVER_STATUS, "GENERAL");
         //check if the server is alive
         if (general.isEmpty()) {
             serverIsAlive(false,Optional.empty());
-            LoggerG.setMessage("[ERROR] Server is not alive").system();
+            LoggerG.setMessage("[ERROR] Server is not alive").system().system();
             return ;
         }
         if(general.get().equals("ALIVE")){
-            LoggerG.setMessage("[DEBUG] Server is alive").system();
+            LoggerG.setMessage("[DEBUG] Server is alive").system().system();
             serverAlive = true;
             Map<String, String> matrice = RedisManager.getInstance().hgetAll("MATRICE");
             for (Map.Entry<String, String> stringStringEntry : matrice.entrySet()) {
